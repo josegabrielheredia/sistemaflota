@@ -225,6 +225,23 @@ body.login #header {
     display: none;
 }
 
+body.login #nav-sidebar,
+body.login .toggle-nav-sidebar,
+body.login #toolbar,
+body.login #nav-filter,
+body.login .main.shifted,
+body.login #main .breadcrumbs,
+body.login .sticky {
+    display: none !important;
+}
+
+body.login #main,
+body.login #content-start,
+body.login #content {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+}
+
 body.login #content {
     min-height: 100vh;
     display: grid;
@@ -262,6 +279,29 @@ body.login #content-main {
     padding: 0 0 0.6rem;
     color: #0f172a;
     border-bottom: 1px solid #e2e8f0;
+    text-align: center;
+}
+
+.login-logo-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+}
+
+.login-logo-mark {
+    width: 52px;
+    height: 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #38bdf8, #2563eb);
+    color: #fff;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    box-shadow: 0 12px 26px rgba(37, 99, 235, 0.24);
 }
 
 .login-company .admin-eyebrow {
@@ -332,10 +372,21 @@ body.login .form-row label {
 
 body.login .form-row input {
     width: 100%;
+    max-width: 100%;
     min-height: 38px;
     padding: 0.52rem 0.72rem;
     font-size: 0.86rem;
     background: #fff;
+    box-sizing: border-box;
+    display: block;
+}
+
+body.login #login-form input[type="text"],
+body.login #login-form input[type="password"],
+body.login #login-form input[type="email"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
 }
 
 body.login .submit-row {
@@ -347,11 +398,13 @@ body.login .submit-row {
 
 body.login .submit-row input {
     width: 100%;
+    max-width: 100%;
     min-height: 38px;
     font-size: 0.76rem;
     font-weight: 800;
     letter-spacing: 0.04em;
     text-transform: uppercase;
+    box-sizing: border-box;
 }
 
 .password-reset-link {
