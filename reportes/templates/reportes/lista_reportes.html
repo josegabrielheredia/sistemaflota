@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="content-card">
+    <div class="section-heading">
+        <div>
+            <span class="section-kicker">Documentacion</span>
+            <h2>Reportes del sistema</h2>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table site-table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Titulo</th>
+                    <th>Fecha</th>
+                    <th>Descripcion</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reporte in reportes %}
+                <tr>
+                    <td><strong>{{ reporte.titulo }}</strong></td>
+                    <td>{{ reporte.fecha|date:"d/m/Y" }}</td>
+                    <td class="table-note">{{ reporte.descripcion|truncatechars:180 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3">
+                        <div class="empty-state">
+                            <strong>No hay reportes disponibles</strong>
+                            <p>Los reportes generados por el sistema se visualizaran en este modulo.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

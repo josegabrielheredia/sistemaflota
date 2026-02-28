@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="content-card">
+    <div class="section-heading">
+        <div>
+            <span class="section-kicker">Inventario</span>
+            <h2>Productos y existencias</h2>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table site-table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Descripcion</th>
+                    <th>Cantidad</th>
+                    <th>Precio unitario</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productos %}
+                <tr>
+                    <td><strong>{{ producto.nombre }}</strong></td>
+                    <td class="table-note">{{ producto.descripcion|default:"Sin descripcion registrada" }}</td>
+                    <td>{{ producto.cantidad }}</td>
+                    <td>RD$ {{ producto.precio }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">
+                        <div class="empty-state">
+                            <strong>No hay productos registrados</strong>
+                            <p>Agrega productos al inventario para comenzar a visualizar existencias y valor del stock.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

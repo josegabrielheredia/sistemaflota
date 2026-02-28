@@ -1,0 +1,32 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block content %}
+<section class="admin-hero">
+    <div>
+        <span class="admin-eyebrow">Administracion</span>
+        <h1>Panel central del sistema</h1>
+        <p>Gestiona catalogos, personal, pagos, cuentas y seguimiento operativo desde un entorno unificado.</p>
+    </div>
+    <div class="admin-hero-badge">Backoffice activo</div>
+</section>
+
+<section class="admin-kpis">
+    <article class="admin-kpi">
+        <span>Modulos</span>
+        <strong>{{ app_list|length }}</strong>
+    </article>
+    <article class="admin-kpi">
+        <span>Entorno</span>
+        <strong>Administracion</strong>
+    </article>
+    <article class="admin-kpi">
+        <span>Acceso</span>
+        <strong>Seguro</strong>
+    </article>
+</section>
+
+<div id="content-main">
+    {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+</div>
+{% endblock %}

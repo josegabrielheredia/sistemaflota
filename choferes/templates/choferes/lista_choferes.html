@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="content-card">
+    <div class="section-heading">
+        <div>
+            <span class="section-kicker">Operaciones</span>
+            <h2>Directorio de choferes</h2>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table site-table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Cedula</th>
+                    <th>Licencia</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for chofer in choferes %}
+                <tr>
+                    <td><strong>{{ chofer.nombre }}</strong></td>
+                    <td>{{ chofer.cedula }}</td>
+                    <td><span class="table-badge">{{ chofer.licencia }}</span></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3">
+                        <div class="empty-state">
+                            <strong>No hay choferes registrados</strong>
+                            <p>Registra el personal de conduccion para mantener la operacion documentada.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

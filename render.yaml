@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: mi-sistema-flota
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn core.wsgi:application"
+    plan: free
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "false"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mi-sistema-flota-db
+          property: connectionString
+
+databases:
+  - name: mi-sistema-flota-db
+    plan: free

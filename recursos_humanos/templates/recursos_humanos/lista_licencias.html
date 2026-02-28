@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="subnav">
+    <a class="subnav-link {% if rrhh_section == 'empleados' %}active{% endif %}" href="/recursos_humanos/empleados/">Empleados</a>
+    <a class="subnav-link {% if rrhh_section == 'licencias' %}active{% endif %}" href="/recursos_humanos/licencias/">Licencias</a>
+    <a class="subnav-link {% if rrhh_section == 'vacaciones' %}active{% endif %}" href="/recursos_humanos/vacaciones/">Vacaciones</a>
+    <a class="subnav-link {% if rrhh_section == 'capacitaciones' %}active{% endif %}" href="/recursos_humanos/capacitaciones/">Capacitaciones</a>
+</div>
+
+<section class="content-card">
+    <div class="section-heading">
+        <div>
+            <span class="section-kicker">RRHH</span>
+            <h2>Licencias del personal</h2>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table site-table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Empleado</th>
+                    <th>Tipo</th>
+                    <th>Inicio</th>
+                    <th>Fin</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for licencia in licencias %}
+                <tr>
+                    <td><strong>{{ licencia.empleado.nombre }}</strong></td>
+                    <td><span class="table-badge">{{ licencia.tipo }}</span></td>
+                    <td>{{ licencia.fecha_inicio|date:"d/m/Y" }}</td>
+                    <td>{{ licencia.fecha_fin|date:"d/m/Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">
+                        <div class="empty-state">
+                            <strong>Sin licencias registradas</strong>
+                            <p>Las licencias del personal se mostraran en esta seccion.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

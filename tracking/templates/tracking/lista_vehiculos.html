@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="content-card">
+    <div class="section-heading">
+        <div>
+            <span class="section-kicker">Flota</span>
+            <h2>Seguimiento de vehiculos</h2>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table site-table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Placa</th>
+                    <th>Modelo</th>
+                    <th>Ultima ubicacion</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vehiculo in vehiculos %}
+                <tr>
+                    <td><strong>{{ vehiculo.placa }}</strong></td>
+                    <td>{{ vehiculo.modelo }}</td>
+                    <td class="table-note">{{ vehiculo.ultima_ubicacion|default:"Sin ubicacion reportada" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3">
+                        <div class="empty-state">
+                            <strong>No hay vehiculos monitoreados</strong>
+                            <p>Las unidades de flota apareceran aqui con su ultima ubicacion conocida.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

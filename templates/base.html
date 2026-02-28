@@ -1,0 +1,626 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{{ page_title|default:"MI SISTEMA FLOTA" }} | MI SISTEMA FLOTA{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{% static 'css/site.css' %}?v=3" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #eef2f7;
+            --bg-2: #f8fafc;
+            --navy: #0b1730;
+            --navy-soft: #132241;
+            --panel: #ffffff;
+            --panel-soft: #f8fbff;
+            --line: #dbe3ee;
+            --text: #0f172a;
+            --muted: #66758b;
+            --blue: #2563eb;
+            --cyan: #0891b2;
+            --green: #0f766e;
+            --amber: #b45309;
+            --shadow-lg: 0 24px 60px rgba(15, 23, 42, 0.12);
+            --shadow-md: 0 14px 34px rgba(15, 23, 42, 0.08);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Manrope", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 20%),
+                radial-gradient(circle at bottom right, rgba(8, 145, 178, 0.10), transparent 24%),
+                linear-gradient(180deg, #f8fbff 0%, #eef3f8 100%);
+        }
+
+        a { color: inherit; text-decoration: none; }
+
+        .app-shell {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 310px minmax(0, 1fr);
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 0;
+            min-height: 100vh;
+            padding: 1.5rem 1.2rem;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.03), transparent 28%),
+                linear-gradient(180deg, var(--navy) 0%, var(--navy-soft) 100%);
+            color: #fff;
+            border-right: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .brand-panel {
+            padding: 1.2rem;
+            border-radius: 24px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.07);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+        }
+
+        .brand-row {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+        }
+
+        .brand-mark {
+            width: 50px;
+            height: 50px;
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+            color: #fff;
+            font-family: "Plus Jakarta Sans", sans-serif;
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            box-shadow: 0 14px 30px rgba(37, 99, 235, 0.34);
+        }
+
+        .brand-overline,
+        .brand-title {
+            display: block;
+        }
+
+        .brand-overline {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            color: rgba(255,255,255,0.58);
+        }
+
+        .brand-title {
+            font-family: "Plus Jakarta Sans", sans-serif;
+            font-size: 1rem;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .brand-copy {
+            margin: 0.9rem 0 0;
+            color: rgba(255,255,255,0.68);
+            line-height: 1.65;
+            font-size: 0.92rem;
+        }
+
+        .sidebar-section-title {
+            margin: 1.5rem 0 0.8rem;
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            color: rgba(255,255,255,0.45);
+        }
+
+        .sidebar-nav {
+            display: grid;
+            gap: 0.55rem;
+        }
+
+        .sidebar-link {
+            display: block;
+            padding: 0.95rem 1rem;
+            border-radius: 20px;
+            background: transparent;
+            border: 1px solid transparent;
+            transition: all 160ms ease;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.05);
+            transform: translateX(2px);
+        }
+
+        .sidebar-link.active {
+            background: linear-gradient(135deg, rgba(37,99,235,0.24), rgba(8,145,178,0.18));
+            border-color: rgba(125,211,252,0.18);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+
+        .sidebar-link span,
+        .sidebar-link small { display: block; }
+
+        .sidebar-link span {
+            color: #fff;
+            font-weight: 800;
+            margin-bottom: 0.18rem;
+        }
+
+        .sidebar-link small {
+            color: rgba(255,255,255,0.62);
+            font-size: 0.8rem;
+        }
+
+        .sidebar-footer {
+            margin-top: 1.5rem;
+            padding: 1rem 1.05rem;
+            border-radius: 20px;
+            background: rgba(34,197,94,0.10);
+            border: 1px solid rgba(134,239,172,0.12);
+            color: #d1fae5;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .main-panel {
+            min-width: 0;
+            padding: 1.4rem;
+        }
+
+        .mobile-nav { display: none; }
+
+        .main-content {
+            display: grid;
+            gap: 1.25rem;
+        }
+
+        .page-topbar {
+            position: relative;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 220px;
+            gap: 1.2rem;
+            align-items: start;
+            padding: 1.6rem 1.75rem;
+            border-radius: 28px;
+            background:
+                linear-gradient(135deg, rgba(37,99,235,0.08), transparent 30%),
+                linear-gradient(180deg, #ffffff 0%, #f9fbfd 100%);
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .page-topbar::after {
+            content: "";
+            position: absolute;
+            right: -60px;
+            top: -60px;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(37,99,235,0.12), transparent 64%);
+            pointer-events: none;
+        }
+
+        .eyebrow,
+        .section-kicker {
+            display: inline-block;
+            margin-bottom: 0.45rem;
+            font-size: 0.74rem;
+            font-weight: 800;
+            letter-spacing: 0.17em;
+            text-transform: uppercase;
+            color: var(--blue);
+        }
+
+        .page-topbar h1,
+        .section-heading h2 {
+            margin: 0;
+            font-family: "Plus Jakarta Sans", sans-serif;
+            letter-spacing: -0.04em;
+        }
+
+        .page-topbar h1 {
+            font-size: clamp(2rem, 3.2vw, 3rem);
+        }
+
+        .page-topbar p,
+        .feature-card p,
+        .stack-item p,
+        .table-note,
+        .empty-state p {
+            color: var(--muted);
+        }
+
+        .topbar-status {
+            position: relative;
+            z-index: 1;
+            padding: 1rem 1.05rem;
+            border-radius: 20px;
+            background: linear-gradient(180deg, #0f172a 0%, #172554 100%);
+            color: #fff;
+            box-shadow: 0 18px 38px rgba(15,23,42,0.24);
+        }
+
+        .status-label {
+            font-size: 0.72rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.58);
+        }
+
+        .status-value {
+            margin-top: 0.35rem;
+            font-family: "Plus Jakarta Sans", sans-serif;
+            font-size: 1.05rem;
+            font-weight: 800;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-card,
+        .content-card,
+        .feature-card,
+        .stack-item {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-card {
+            padding: 1.2rem 1.25rem;
+            border-radius: 22px;
+        }
+
+        .accent-blue { border-top: 4px solid var(--blue); }
+        .accent-teal { border-top: 4px solid var(--cyan); }
+        .accent-amber { border-top: 4px solid var(--amber); }
+        .accent-green { border-top: 4px solid var(--green); }
+
+        .stat-label {
+            display: block;
+            margin-bottom: 0.45rem;
+            color: var(--muted);
+            font-size: 0.86rem;
+        }
+
+        .stat-value {
+            font-family: "Plus Jakarta Sans", sans-serif;
+            font-size: 1.85rem;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+        }
+
+        .content-card {
+            padding: 1.35rem;
+            border-radius: 24px;
+        }
+
+        .section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-heading h2 {
+            font-size: 1.35rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1rem;
+        }
+
+        .feature-card {
+            min-height: 220px;
+            padding: 1.25rem;
+            border-radius: 22px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 1.5rem;
+            transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 22px 44px rgba(15,23,42,0.12);
+            border-color: #bfdbfe;
+        }
+
+        .feature-card h3,
+        .stack-item h3 {
+            margin: 0;
+            font-family: "Plus Jakarta Sans", sans-serif;
+            font-size: 1.05rem;
+            letter-spacing: -0.03em;
+        }
+
+        .feature-card p {
+            margin: 0.55rem 0 0;
+            line-height: 1.65;
+        }
+
+        .feature-metric {
+            display: inline-flex;
+            align-self: flex-start;
+            padding: 0.5rem 0.78rem;
+            border-radius: 999px;
+            background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
+            color: #1d4ed8;
+            font-size: 0.82rem;
+            font-weight: 800;
+        }
+
+        .split-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.45fr) minmax(320px, 1fr);
+            gap: 1.2rem;
+        }
+
+        .site-table {
+            margin-bottom: 0;
+        }
+
+        .site-table thead th {
+            color: #718096;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 0.8rem;
+        }
+
+        .site-table tbody td {
+            vertical-align: middle;
+            border-color: var(--line);
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+
+        .site-table tbody tr:hover {
+            background: #f8fbff;
+        }
+
+        .table-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.42rem 0.72rem;
+            border-radius: 999px;
+            background: linear-gradient(180deg, #ecfeff 0%, #cffafe 100%);
+            color: #0f766e;
+            font-size: 0.8rem;
+            font-weight: 800;
+        }
+
+        .table-note {
+            font-size: 0.92rem;
+            line-height: 1.55;
+        }
+
+        .stack-list {
+            display: grid;
+            gap: 0.9rem;
+        }
+
+        .stack-item {
+            padding: 1rem 1.05rem;
+            border-radius: 18px;
+        }
+
+        .stack-item-meta {
+            margin-bottom: 0.35rem;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: var(--blue);
+        }
+
+        .subnav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.7rem;
+        }
+
+        .subnav-link {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.72rem 0.95rem;
+            border-radius: 999px;
+            background: #e5edf8;
+            color: #334155;
+            font-size: 0.9rem;
+            font-weight: 700;
+            border: 1px solid transparent;
+        }
+
+        .subnav-link.active {
+            background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+            color: #fff;
+            box-shadow: 0 14px 30px rgba(37,99,235,0.18);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+
+        .empty-state.compact {
+            padding: 1rem 0;
+        }
+
+        @media (max-width: 1199.98px) {
+            .app-shell {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .mobile-nav {
+                display: block;
+                margin-bottom: 1rem;
+            }
+
+            .mobile-nav .container-fluid {
+                padding: 1rem 1.1rem;
+                border-radius: 20px;
+                background: #fff;
+                border: 1px solid var(--line);
+                box-shadow: var(--shadow-md);
+            }
+
+            .mobile-brand {
+                font-family: "Plus Jakarta Sans", sans-serif;
+                font-size: 1rem;
+                font-weight: 800;
+                color: var(--text);
+            }
+
+            .mobile-nav-links {
+                display: grid;
+                gap: 0.55rem;
+                padding-top: 0.9rem;
+            }
+
+            .mobile-link {
+                padding-top: 0.8rem;
+                border-top: 1px solid var(--line);
+                font-weight: 700;
+            }
+        }
+
+        @media (max-width: 991.98px) {
+            .page-topbar,
+            .split-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .main-panel {
+                padding: 1rem;
+            }
+
+            .page-topbar,
+            .content-card,
+            .stat-card {
+                border-radius: 20px;
+            }
+
+            .page-topbar,
+            .content-card {
+                padding: 1.15rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand-panel">
+            <a class="brand-row" href="/">
+                <span class="brand-mark">MF</span>
+                <span>
+                    <span class="brand-overline">Control corporativo</span>
+                    <span class="brand-title">MI SISTEMA FLOTA</span>
+                </span>
+            </a>
+            <p class="brand-copy">Sistema de gestion de flota con enfoque en operacion, personal, cuentas y control documental.</p>
+        </div>
+
+        <div class="sidebar-section-title">Navegacion</div>
+        <nav class="sidebar-nav">
+            <a class="sidebar-link {% if request.path == '/' %}active{% endif %}" href="/"><span>Dashboard</span><small>Resumen ejecutivo</small></a>
+            <a class="sidebar-link {% if '/inventario/' in request.path %}active{% endif %}" href="/inventario/"><span>Inventario</span><small>Productos y stock</small></a>
+            <a class="sidebar-link {% if '/choferes/' in request.path %}active{% endif %}" href="/choferes/"><span>Choferes</span><small>Operacion y licencias</small></a>
+            <a class="sidebar-link {% if '/pagos/' in request.path %}active{% endif %}" href="/pagos/"><span>Pagos</span><small>Control de desembolsos</small></a>
+            <a class="sidebar-link {% if '/cuentas/' in request.path %}active{% endif %}" href="/cuentas/"><span>Cuentas</span><small>Flujo financiero</small></a>
+            <a class="sidebar-link {% if '/recursos_humanos/' in request.path %}active{% endif %}" href="/recursos_humanos/empleados/"><span>RRHH</span><small>Talento y desarrollo</small></a>
+            <a class="sidebar-link {% if '/tracking/' in request.path %}active{% endif %}" href="/tracking/"><span>Tracking</span><small>Trazabilidad vehicular</small></a>
+            <a class="sidebar-link {% if '/reportes/' in request.path %}active{% endif %}" href="/reportes/"><span>Reportes</span><small>Documentacion y novedades</small></a>
+        </nav>
+
+        <div class="sidebar-footer">Operacion en linea</div>
+    </aside>
+
+    <div class="main-panel">
+        <nav class="navbar navbar-expand-lg mobile-nav">
+            <div class="container-fluid px-0">
+                <a class="navbar-brand mobile-brand" href="/">MI SISTEMA FLOTA</a>
+                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#mobileNav" aria-label="Abrir menu">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="mobileNav">
+                    <div class="mobile-nav-links">
+                        <a class="mobile-link" href="/">Dashboard</a>
+                        <a class="mobile-link" href="/inventario/">Inventario</a>
+                        <a class="mobile-link" href="/choferes/">Choferes</a>
+                        <a class="mobile-link" href="/pagos/">Pagos</a>
+                        <a class="mobile-link" href="/cuentas/">Cuentas</a>
+                        <a class="mobile-link" href="/recursos_humanos/empleados/">RRHH</a>
+                        <a class="mobile-link" href="/tracking/">Tracking</a>
+                        <a class="mobile-link" href="/reportes/">Reportes</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <section class="page-topbar">
+                <div>
+                    <span class="eyebrow">Panel de gestion</span>
+                    <h1>{{ page_title|default:"MI SISTEMA FLOTA" }}</h1>
+                    <p>{{ page_intro|default:"Gestion integral de inventario, personal, pagos y seguimiento de la flota." }}</p>
+                </div>
+                <div class="topbar-status">
+                    <div class="status-label">Estado</div>
+                    <div class="status-value">Sistema operativo</div>
+                </div>
+            </section>
+
+            {% if summary_cards %}
+            <section class="stats-grid">
+                {% for card in summary_cards %}
+                <article class="stat-card accent-{{ card.accent|default:'blue' }}">
+                    <span class="stat-label">{{ card.label }}</span>
+                    <strong class="stat-value">{{ card.value }}</strong>
+                </article>
+                {% endfor %}
+            </section>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

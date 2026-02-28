@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="content-card">
+    <div class="section-heading">
+        <div>
+            <span class="section-kicker">Modulos</span>
+            <h2>Vista general del sistema</h2>
+        </div>
+    </div>
+    <div class="feature-grid">
+        {% for module in module_cards %}
+        <a class="feature-card" href="{{ module.href }}">
+            <div>
+                <h3>{{ module.title }}</h3>
+                <p>{{ module.text }}</p>
+            </div>
+            <span class="feature-metric">{{ module.metric }}</span>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+<div class="split-layout">
+    <section class="content-card">
+        <div class="section-heading">
+            <div>
+                <span class="section-kicker">Actividad</span>
+                <h2>Ultimos pagos registrados</h2>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table site-table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Chofer</th>
+                        <th>Monto</th>
+                        <th>Fecha</th>
+                        <th>Metodo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pago in recent_payments %}
+                    <tr>
+                        <td>{{ pago.chofer.nombre }}</td>
+                        <td>RD$ {{ pago.monto }}</td>
+                        <td>{{ pago.fecha|date:"d/m/Y" }}</td>
+                        <td><span class="table-badge">{{ pago.metodo }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">
+                            <div class="empty-state compact">
+                                <strong>Sin pagos registrados</strong>
+                                <p>Cuando se registren movimientos apareceran aqui.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="content-card">
+        <div class="section-heading">
+            <div>
+                <span class="section-kicker">Documentacion</span>
+                <h2>Reportes recientes</h2>
+            </div>
+        </div>
+        <div class="stack-list">
+            {% for reporte in recent_reports %}
+            <article class="stack-item">
+                <div class="stack-item-meta">{{ reporte.fecha|date:"d/m/Y" }}</div>
+                <h3>{{ reporte.titulo }}</h3>
+                <p>{{ reporte.descripcion|truncatechars:140 }}</p>
+            </article>
+            {% empty %}
+            <div class="empty-state compact">
+                <strong>Sin reportes disponibles</strong>
+                <p>Los documentos de seguimiento se mostraran en este panel.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

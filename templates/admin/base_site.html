@@ -1,0 +1,26 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | MI SISTEMA FLOTA{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'admin/css/admin-custom.css' %}?v=1">
+{% endblock %}
+
+{% block branding %}
+<div class="admin-branding">
+    <a href="{% url 'admin:index' %}" class="admin-brand-link">
+        <span class="admin-brand-mark">MF</span>
+        <span class="admin-brand-copy">
+            <span class="admin-brand-overline">Control corporativo</span>
+            <span class="admin-brand-title">MI SISTEMA FLOTA</span>
+        </span>
+    </a>
+</div>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
