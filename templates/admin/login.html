@@ -9,13 +9,35 @@
 
 {% block content %}
 <div class="login-shell">
-    <section class="login-panel">
-        <div class="login-copy">
-            <span class="admin-eyebrow">Acceso seguro</span>
-            <h1>Administracion de flota</h1>
-            <p>Ingresa al backoffice para gestionar inventario, RRHH, cuentas, pagos y reportes.</p>
+    <section class="login-stage">
+        <div class="login-stage-copy">
+            <span class="admin-eyebrow">Backoffice premium</span>
+            <h1>Centro de administracion para una operacion de flota real.</h1>
+            <p>Gestiona alquileres, inventario de combustible, pagos por conduce, cuentas por pagar y recursos humanos desde un solo entorno.</p>
+
+            <div class="login-highlights">
+                <article class="login-highlight">
+                    <strong>Control operativo</strong>
+                    <span>Vehiculos, contenedores, disponibilidad y seguimiento.</span>
+                </article>
+                <article class="login-highlight">
+                    <strong>Flujo financiero</strong>
+                    <span>Pagos a choferes, saldos, cuentas y trazabilidad.</span>
+                </article>
+                <article class="login-highlight">
+                    <strong>Talento y cumplimiento</strong>
+                    <span>Licencias, vacaciones, cargos y estructura organizacional.</span>
+                </article>
+            </div>
         </div>
-        <div class="login-form-wrap">
+
+        <div class="login-card">
+            <div class="login-card-head">
+                <span class="login-badge">Acceso seguro</span>
+                <h2>Iniciar sesion</h2>
+                <p>Accede al panel administrativo con tus credenciales autorizadas.</p>
+            </div>
+
             {% if form.errors and not form.non_field_errors %}
             <p class="errornote">
                 {% blocktranslate count counter=form.errors.items|length %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktranslate %}
@@ -37,7 +59,7 @@
             </p>
             {% endif %}
 
-            <form action="{{ app_path }}" method="post" id="login-form">
+            <form action="{{ app_path }}" method="post" id="login-form" class="login-form-grid">
                 {% csrf_token %}
                 <div class="form-row">
                     {{ form.username.errors }}
@@ -50,12 +72,14 @@
                     {{ form.password }}
                     <input type="hidden" name="next" value="{{ next }}">
                 </div>
+
                 {% url 'admin_password_reset' as password_reset_url %}
                 {% if password_reset_url %}
                 <div class="password-reset-link">
                     <a href="{{ password_reset_url }}">{% translate 'Forgotten your password or username?' %}</a>
                 </div>
                 {% endif %}
+
                 <div class="submit-row">
                     <input type="submit" value="{% translate 'Log in' %}">
                 </div>
