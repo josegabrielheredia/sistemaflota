@@ -2,7 +2,7 @@ services:
   - type: web
     name: mi-sistema-flota
     env: python
-    buildCommand: "./build.sh"
+    buildCommand: "bash build.sh"
     startCommand: "gunicorn core.wsgi:application"
     plan: free
     envVars:
