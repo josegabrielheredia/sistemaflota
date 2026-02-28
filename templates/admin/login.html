@@ -7,6 +7,10 @@
 
 {% block nav-breadcrumbs %}{% endblock %}
 
+{% block nav-sidebar %}{% endblock %}
+
+{% block content_title %}{% endblock %}
+
 {% block content %}
 <div class="login-shell">
     <section class="login-card login-card-vertical">
@@ -17,11 +21,6 @@
             <span class="admin-eyebrow">Acceso administrativo</span>
             <h1>MI SISTEMA FLOTA</h1>
             <p>Gestion empresarial de flota, pagos, combustible y personal.</p>
-        </div>
-
-        <div class="login-card-head">
-            <span class="login-badge">Acceso seguro</span>
-            <h2>Iniciar sesion</h2>
         </div>
 
         {% if form.errors and not form.non_field_errors %}
@@ -47,6 +46,10 @@
 
         <form action="{{ app_path }}" method="post" id="login-form" class="login-form-grid">
             {% csrf_token %}
+            <div class="login-card-head">
+                <span class="login-badge">Acceso seguro</span>
+                <h2>Iniciar sesion</h2>
+            </div>
             <div class="form-row">
                 {{ form.username.errors }}
                 {{ form.username.label_tag }}
