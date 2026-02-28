@@ -247,19 +247,19 @@ body.login #content-main {
 }
 
 .login-card {
-    padding: 1rem;
-    border-radius: 22px;
+    padding: 0.85rem;
+    border-radius: 20px;
     background: rgba(255,255,255,0.96);
     border: 1px solid #dbe3ee;
     box-shadow: 0 20px 44px rgba(15, 23, 42, 0.10);
 }
 
 .login-card-vertical {
-    width: min(400px, 100%);
+    width: min(360px, 100%);
 }
 
 .login-company {
-    padding: 0 0 0.75rem;
+    padding: 0 0 0.6rem;
     color: #0f172a;
     border-bottom: 1px solid #e2e8f0;
 }
@@ -272,7 +272,7 @@ body.login #content-main {
 .login-company h1 {
     margin: 0;
     font-family: "Plus Jakarta Sans", sans-serif;
-    font-size: clamp(1.35rem, 4vw, 1.8rem);
+    font-size: clamp(1.2rem, 4vw, 1.55rem);
     letter-spacing: -0.06em;
 }
 
@@ -284,7 +284,7 @@ body.login #content-main {
 }
 
 .login-card-head {
-    margin: 0.8rem 0 0.65rem;
+    margin: 0.65rem 0 0.55rem;
 }
 
 .login-badge {
@@ -303,7 +303,7 @@ body.login #content-main {
 .login-card h2 {
     margin: 0.5rem 0 0;
     font-family: "Plus Jakarta Sans", sans-serif;
-    font-size: 1.2rem;
+    font-size: 1.05rem;
     letter-spacing: -0.05em;
 }
 
@@ -315,7 +315,7 @@ body.login #content-main {
 
 .login-form-grid {
     display: grid;
-    gap: 0.6rem;
+    gap: 0.5rem;
 }
 
 body.login .form-row {
@@ -332,9 +332,9 @@ body.login .form-row label {
 
 body.login .form-row input {
     width: 100%;
-    min-height: 40px;
-    padding: 0.58rem 0.8rem;
-    font-size: 0.9rem;
+    min-height: 38px;
+    padding: 0.52rem 0.72rem;
+    font-size: 0.86rem;
     background: #fff;
 }
 
@@ -347,8 +347,8 @@ body.login .submit-row {
 
 body.login .submit-row input {
     width: 100%;
-    min-height: 40px;
-    font-size: 0.8rem;
+    min-height: 38px;
+    font-size: 0.76rem;
     font-weight: 800;
     letter-spacing: 0.04em;
     text-transform: uppercase;
