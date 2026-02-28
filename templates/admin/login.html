@@ -2,77 +2,77 @@
 {% load i18n static %}
 
 {% block bodyclass %}{{ block.super }} login{% endblock %}
-
 {% block usertools %}{% endblock %}
-
 {% block nav-breadcrumbs %}{% endblock %}
-
 {% block nav-sidebar %}{% endblock %}
-
 {% block content_title %}{% endblock %}
 
 {% block content %}
 <div class="login-shell">
-    <section class="login-card login-card-vertical">
-        <div class="login-company">
-            <div class="login-logo-wrap">
-                <span class="login-logo-mark">MF</span>
+    <section class="login-center">
+        <div class="form-card form-card-center">
+            <div class="form-top-logo">
+                <img
+                    class="form-top-logo-image"
+                    src="{% static 'admin/img/logo-victorino-diroche.png.png' %}"
+                    alt="Transporte Victorino Diroche, S.R.L."
+                >
             </div>
-            <span class="admin-eyebrow">Acceso administrativo</span>
-            <h1>MI SISTEMA FLOTA</h1>
-            <p>Gestion empresarial de flota, pagos, combustible y personal.</p>
-        </div>
 
-        {% if form.errors and not form.non_field_errors %}
-        <p class="errornote">
-            {% blocktranslate count counter=form.errors.items|length %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktranslate %}
-        </p>
-        {% endif %}
-
-        {% if form.non_field_errors %}
-        {% for error in form.non_field_errors %}
-        <p class="errornote">{{ error }}</p>
-        {% endfor %}
-        {% endif %}
-
-        {% if user.is_authenticated %}
-        <p class="errornote">
-            {% blocktranslate trimmed %}
-            You are authenticated as {{ username }}, but are not authorized to access this page.
-            Would you like to login to a different account?
-            {% endblocktranslate %}
-        </p>
-        {% endif %}
-
-        <form action="{{ app_path }}" method="post" id="login-form" class="login-form-grid">
-            {% csrf_token %}
-            <div class="login-card-head">
-                <span class="login-badge">Acceso seguro</span>
+            <div class="form-card-head">
+                <span class="login-kicker">Portal administrativo</span>
                 <h2>Iniciar sesion</h2>
-            </div>
-            <div class="form-row">
-                {{ form.username.errors }}
-                {{ form.username.label_tag }}
-                {{ form.username }}
-            </div>
-            <div class="form-row">
-                {{ form.password.errors }}
-                {{ form.password.label_tag }}
-                {{ form.password }}
-                <input type="hidden" name="next" value="{{ next }}">
+                <p>Acceso interno para personal autorizado.</p>
             </div>
 
-            {% url 'admin_password_reset' as password_reset_url %}
-            {% if password_reset_url %}
-            <div class="password-reset-link">
-                <a href="{{ password_reset_url }}">{% translate 'Forgotten your password or username?' %}</a>
-            </div>
+            {% if form.errors and not form.non_field_errors %}
+            <p class="errornote">
+                {% blocktranslate count counter=form.errors.items|length %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktranslate %}
+            </p>
             {% endif %}
 
-            <div class="submit-row">
-                <input type="submit" value="{% translate 'Log in' %}">
-            </div>
-        </form>
+            {% if form.non_field_errors %}
+            {% for error in form.non_field_errors %}
+            <p class="errornote">{{ error }}</p>
+            {% endfor %}
+            {% endif %}
+
+            {% if user.is_authenticated %}
+            <p class="errornote">
+                {% blocktranslate trimmed %}
+                You are authenticated as {{ username }}, but are not authorized to access this page.
+                Would you like to login to a different account?
+                {% endblocktranslate %}
+            </p>
+            {% endif %}
+
+            <form action="{{ app_path }}" method="post" id="login-form" class="login-form-grid">
+                {% csrf_token %}
+                <div class="form-row">
+                    {{ form.username.errors }}
+                    {{ form.username.label_tag }}
+                    {{ form.username }}
+                </div>
+
+                <div class="form-row">
+                    {{ form.password.errors }}
+                    {{ form.password.label_tag }}
+                    {{ form.password }}
+                    <input type="hidden" name="next" value="{{ next }}">
+                </div>
+
+                {% url 'admin_password_reset' as password_reset_url %}
+                {% if password_reset_url %}
+                <div class="password-reset-link">
+                    <a href="{{ password_reset_url }}">{% translate 'Forgotten your password or username?' %}</a>
+                </div>
+                {% endif %}
+
+                <div class="submit-row">
+                    <input type="submit" value="{% translate 'Log in' %}">
+                </div>
+            </form>
+        </div>
     </section>
 </div>
 {% endblock %}

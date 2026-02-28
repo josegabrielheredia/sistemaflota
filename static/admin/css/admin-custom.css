@@ -1,6 +1,6 @@
 html, body {
     font-family: "Manrope", sans-serif;
-    background: linear-gradient(180deg, #f7faff 0%, #eef3f8 100%);
+    background: linear-gradient(180deg, #f3f6fb 0%, #e9eef5 100%);
     color: #0f172a;
 }
 
@@ -36,11 +36,11 @@ html, body {
     align-items: center;
     justify-content: center;
     border-radius: 14px;
-    background: linear-gradient(135deg, #38bdf8, #2563eb);
+    background: linear-gradient(135deg, #f97316, #4338ca);
     font-family: "Plus Jakarta Sans", sans-serif;
     font-weight: 800;
     letter-spacing: 0.08em;
-    box-shadow: 0 12px 26px rgba(37, 99, 235, 0.34);
+    box-shadow: 0 12px 26px rgba(67, 56, 202, 0.28);
 }
 
 .admin-brand-copy span {
@@ -92,12 +92,12 @@ div.breadcrumbs a {
 
 .admin-eyebrow {
     display: inline-block;
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.45rem;
     font-size: 0.74rem;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.16em;
-    color: #2563eb;
+    color: #f97316;
 }
 
 .admin-hero h1 {
@@ -206,8 +206,8 @@ input, textarea, select, .vTextField {
 }
 
 input:focus, textarea:focus, select:focus {
-    border-color: #60a5fa !important;
-    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.14) !important;
+    border-color: #818cf8 !important;
+    box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.14) !important;
 }
 
 .selector select {
@@ -216,15 +216,31 @@ input:focus, textarea:focus, select:focus {
 
 body.login {
     background:
-        radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 20%),
-        radial-gradient(circle at bottom right, rgba(15, 118, 110, 0.12), transparent 24%),
-        linear-gradient(180deg, #eef3f8 0%, #e8eef6 100%);
+        linear-gradient(132deg, transparent 0 34%, rgba(249, 115, 22, 0.14) 34% 38%, transparent 38% 100%),
+        linear-gradient(132deg, transparent 0 52%, rgba(59, 130, 246, 0.12) 52% 56%, transparent 56% 100%),
+        linear-gradient(132deg, #0a1426 0 30%, #101d38 30% 58%, #e8edf4 58% 100%);
 }
 
-body.login #header {
-    display: none;
+body.login::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(180deg, rgba(255,255,255,0.04), transparent 24%),
+        radial-gradient(circle at 78% 24%, rgba(255,255,255,0.22), transparent 18%);
 }
 
+body.login::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at center, transparent 0%, transparent 54%, rgba(3, 7, 18, 0.18) 100%);
+}
+
+body.login #header,
 body.login #nav-sidebar,
 body.login .toggle-nav-sidebar,
 body.login .toggle-nav-sidebar-button,
@@ -257,15 +273,15 @@ body.login #main {
     max-width: 100% !important;
 }
 
+body.login #container {
+    background: transparent;
+}
+
 body.login #content {
     min-height: 100vh;
     display: grid;
     place-items: center;
     padding: 0 !important;
-}
-
-body.login #container {
-    background: transparent;
 }
 
 body.login #content-main {
@@ -276,105 +292,72 @@ body.login #content-main {
     width: 100%;
     display: grid;
     place-items: center;
-    padding: 1rem 1.25rem;
+    padding: 1.5rem;
 }
 
-.login-card {
-    padding: 1rem;
-    border-radius: 20px;
-    background: rgba(255,255,255,0.96);
-    border: 1px solid #dbe3ee;
-    box-shadow: 0 20px 44px rgba(15, 23, 42, 0.10);
-    overflow: hidden;
+.login-center {
+    width: min(390px, 100%);
 }
 
-.login-card-vertical {
-    width: min(420px, 100%);
+.form-card-center {
+    width: 100%;
+    padding: 1.2rem;
+    border-radius: 26px;
+    background: rgba(255,255,255,0.94);
+    border: 1px solid rgba(255,255,255,0.8);
+    box-shadow: 0 28px 64px rgba(2, 8, 23, 0.22);
+    backdrop-filter: blur(14px);
 }
 
-.login-company {
-    padding: 0 0 0.75rem;
-    color: #0f172a;
+.form-top-logo {
+    display: flex;
+    justify-content: center;
+    padding-bottom: 0.8rem;
+    margin-bottom: 0.8rem;
     border-bottom: 1px solid #e2e8f0;
+}
+
+.form-top-logo-image {
+    display: block;
+    width: min(220px, 100%);
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+.form-card-head {
+    margin-bottom: 0.85rem;
     text-align: center;
 }
 
-.login-logo-wrap {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 0.6rem;
-}
-
-.login-logo-mark {
-    width: 56px;
-    height: 56px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 16px;
-    background: linear-gradient(135deg, #38bdf8, #2563eb);
-    color: #fff;
-    font-family: "Plus Jakarta Sans", sans-serif;
-    font-size: 0.95rem;
+.login-kicker {
+    display: inline-block;
+    color: #475569;
+    font-size: 0.76rem;
     font-weight: 800;
-    letter-spacing: 0.08em;
-    box-shadow: 0 12px 26px rgba(37, 99, 235, 0.24);
-}
-
-.login-company .admin-eyebrow {
-    color: #2563eb;
-    margin-bottom: 0.3rem;
-}
-
-.login-company h1 {
-    margin: 0;
-    font-family: "Plus Jakarta Sans", sans-serif;
-    font-size: clamp(1.35rem, 4vw, 1.8rem);
-    letter-spacing: -0.06em;
-}
-
-.login-company p {
-    margin: 0.45rem 0 0;
-    color: #64748b;
-    line-height: 1.45;
-    font-size: 0.88rem;
-}
-
-.login-card-head {
-    margin: 0 0 0.65rem;
-}
-
-.login-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.34rem 0.6rem;
-    border-radius: 999px;
-    background: #e0f2fe;
-    color: #0369a1;
-    font-size: 0.7rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
 }
 
-.login-card h2 {
-    margin: 0.55rem 0 0;
+.form-card h2 {
+    margin: 0.45rem 0 0;
     font-family: "Plus Jakarta Sans", sans-serif;
-    font-size: 1.5rem;
+    font-size: 1.7rem;
     letter-spacing: -0.05em;
+    color: #0f172a;
 }
 
-.login-card-head p {
-    margin: 0.45rem 0 0;
+.form-card-head p {
+    margin: 0.55rem 0 0;
     color: #64748b;
     line-height: 1.6;
+    font-size: 0.9rem;
 }
 
 .login-form-grid {
     display: grid;
-    gap: 0.75rem;
+    gap: 0.7rem;
     width: 100%;
-    max-width: 100%;
 }
 
 body.login .form-row {
@@ -387,31 +370,27 @@ body.login .form-row {
 body.login .form-row label {
     display: block;
     margin-bottom: 0.35rem;
-    color: #334155;
+    color: #1e293b;
     font-size: 0.84rem;
     font-weight: 700;
 }
 
-body.login .form-row input {
-    width: 100%;
-    max-width: 100%;
-    min-height: 38px;
-    padding: 0.8rem 0.95rem;
-    font-size: 0.95rem;
-    background: #fff;
-    box-sizing: border-box;
-    display: block;
-    border-radius: 16px !important;
-    border: 1px solid #cbd5e1 !important;
-    box-shadow: none !important;
-}
-
+body.login .form-row input,
 body.login #login-form input[type="text"],
 body.login #login-form input[type="password"],
 body.login #login-form input[type="email"] {
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
+    min-height: 48px;
+    padding: 0.74rem 0.9rem;
+    font-size: 0.9rem;
+    background: #fff;
+    box-sizing: border-box;
+    display: block;
+    border-radius: 16px !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: none !important;
 }
 
 body.login .submit-row {
@@ -424,33 +403,36 @@ body.login .submit-row {
 body.login .submit-row input {
     width: 100%;
     max-width: 100%;
-    min-height: 44px;
-    font-size: 0.86rem;
+    min-height: 48px;
+    font-size: 0.8rem;
     font-weight: 800;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     box-sizing: border-box;
     border-radius: 16px;
+    background: linear-gradient(90deg, #4338ca 0%, #1d4ed8 100%);
+    box-shadow: 0 16px 28px rgba(37, 99, 235, 0.22);
 }
 
 .password-reset-link {
-    margin-top: -0.15rem;
+    margin-top: -0.05rem;
     margin-bottom: 0.1rem;
 }
 
 .password-reset-link a {
-    color: #2563eb;
+    color: #4338ca;
     font-weight: 700;
-    font-size: 0.78rem;
+    font-size: 0.82rem;
+    text-decoration: none;
 }
 
 .errornote {
-    border-radius: 12px;
+    border-radius: 14px;
     border: 1px solid #fecaca;
     background: #fff1f2;
     color: #be123c;
-    font-size: 0.8rem;
-    padding: 0.65rem 0.8rem;
+    font-size: 0.82rem;
+    padding: 0.7rem 0.85rem;
 }
 
 @media (max-width: 980px) {
@@ -462,19 +444,11 @@ body.login .submit-row input {
 
 @media (max-width: 640px) {
     .login-shell {
-        padding: 0.75rem;
-    }
-
-    .login-card {
         padding: 0.9rem;
-        border-radius: 18px;
     }
 
-    .login-company {
-        padding-bottom: 0.65rem;
-    }
-
-    .login-card-vertical {
-        width: 100%;
+    .form-card-center {
+        padding: 1rem;
+        border-radius: 22px;
     }
 }
