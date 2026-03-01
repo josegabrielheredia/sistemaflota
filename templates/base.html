@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}{{ page_title|default:"MI SISTEMA FLOTA" }} | MI SISTEMA FLOTA{% endblock %}</title>
+    <title>{% block title %}{{ page_title|default:"Centro de control" }} | Transporte Victorino Diroche, S.R.L.{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
@@ -76,20 +76,15 @@
             gap: 0.85rem;
         }
 
-        .brand-mark {
-            width: 50px;
-            height: 50px;
-            border-radius: 16px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
-            color: #fff;
-            font-family: "Plus Jakarta Sans", sans-serif;
-            font-size: 1rem;
-            font-weight: 800;
-            letter-spacing: 0.08em;
-            box-shadow: 0 14px 30px rgba(37, 99, 235, 0.34);
+        .brand-logo {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            filter: drop-shadow(0 12px 24px rgba(15, 23, 42, 0.28));
+        }
+
+        .brand-stack {
+            min-width: 0;
         }
 
         .brand-overline,
@@ -106,7 +101,7 @@
 
         .brand-title {
             font-family: "Plus Jakarta Sans", sans-serif;
-            font-size: 1rem;
+            font-size: 1.05rem;
             font-weight: 800;
             color: #fff;
         }
@@ -253,7 +248,9 @@
             z-index: 1;
             padding: 1rem 1.05rem;
             border-radius: 20px;
-            background: linear-gradient(180deg, #0f172a 0%, #172554 100%);
+            background:
+                radial-gradient(circle at top right, rgba(56, 189, 248, 0.16), transparent 35%),
+                linear-gradient(180deg, #0f172a 0%, #172554 100%);
             color: #fff;
             box-shadow: 0 18px 38px rgba(15,23,42,0.24);
         }
@@ -270,6 +267,13 @@
             font-family: "Plus Jakarta Sans", sans-serif;
             font-size: 1.05rem;
             font-weight: 800;
+        }
+
+        .status-note {
+            margin-top: 0.3rem;
+            color: rgba(255,255,255,0.68);
+            font-size: 0.82rem;
+            line-height: 1.45;
         }
 
         .stats-grid {
@@ -546,13 +550,13 @@
     <aside class="sidebar">
         <div class="brand-panel">
             <a class="brand-row" href="/">
-                <span class="brand-mark">MF</span>
-                <span>
-                    <span class="brand-overline">Control corporativo</span>
-                    <span class="brand-title">MI SISTEMA FLOTA</span>
+                <img class="brand-logo" src="{% static 'admin/img/logo-victorino-diroche.png.png' %}" alt="Transporte Victorino Diroche, S.R.L.">
+                <span class="brand-stack">
+                    <span class="brand-overline">Panel operativo</span>
+                    <span class="brand-title">Transporte Victorino Diroche, S.R.L.</span>
                 </span>
             </a>
-            <p class="brand-copy">Sistema de gestion de flota con enfoque en operacion, personal, cuentas y control documental.</p>
+            <p class="brand-copy">Gestion centralizada de flota, personal, pagos, combustible y seguimiento operativo.</p>
         </div>
 
         <div class="sidebar-section-title">Navegacion</div>
@@ -573,7 +577,7 @@
     <div class="main-panel">
         <nav class="navbar navbar-expand-lg mobile-nav">
             <div class="container-fluid px-0">
-                <a class="navbar-brand mobile-brand" href="/">MI SISTEMA FLOTA</a>
+                <a class="navbar-brand mobile-brand" href="/">Transporte Victorino Diroche</a>
                 <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#mobileNav" aria-label="Abrir menu">
                     <span class="navbar-toggler-icon"></span>
                 </button>
@@ -596,12 +600,13 @@
             <section class="page-topbar">
                 <div>
                     <span class="eyebrow">Panel de gestion</span>
-                    <h1>{{ page_title|default:"MI SISTEMA FLOTA" }}</h1>
-                    <p>{{ page_intro|default:"Gestion integral de inventario, personal, pagos y seguimiento de la flota." }}</p>
+                    <h1>{{ page_title|default:"Centro de control" }}</h1>
+                    <p>{{ page_intro|default:"Gestion integral de inventario, personal, pagos, combustible y seguimiento de la flota." }}</p>
                 </div>
                 <div class="topbar-status">
-                    <div class="status-label">Estado</div>
-                    <div class="status-value">Sistema operativo</div>
+                    <div class="status-label">Estado general</div>
+                    <div class="status-value">Operacion en linea</div>
+                    <div class="status-note">Panel central para supervision administrativa y operativa.</div>
                 </div>
             </section>
 

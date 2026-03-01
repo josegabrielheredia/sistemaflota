@@ -1,0 +1,34 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block bodyclass %}{{ block.super }} login logged-out-page{% endblock %}
+{% block usertools %}{% endblock %}
+{% block nav-breadcrumbs %}{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+{% block content_title %}{% endblock %}
+
+{% block content %}
+<div class="login-shell">
+    <section class="login-center">
+        <div class="form-card form-card-center logout-card">
+            <div class="form-top-logo">
+                <img
+                    class="form-top-logo-image"
+                    src="{% static 'admin/img/logo-victorino-diroche.png.png' %}"
+                    alt="Transporte Victorino Diroche, S.R.L."
+                >
+            </div>
+
+            <div class="form-card-head">
+                <span class="login-kicker">Sesion finalizada</span>
+                <h2>Has salido del panel</h2>
+                <p>Tu sesion administrativa se ha cerrado correctamente.</p>
+            </div>
+
+            <div class="logout-actions">
+                <a class="logout-primary" href="{% url 'admin:login' %}">Iniciar sesion de nuevo</a>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

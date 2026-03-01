@@ -3,9 +3,10 @@ from django.urls import include, path
 
 from .views import dashboard
 
-admin.site.site_header = "MI SISTEMA FLOTA"
+admin.site.site_header = "Transporte Victorino Diroche, S.R.L."
 admin.site.site_title = "Panel administrativo"
 admin.site.index_title = "Centro de administracion"
+admin.site.site_url = None
 
 
 urlpatterns = [

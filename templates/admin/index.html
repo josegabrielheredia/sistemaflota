@@ -1,32 +1,93 @@
 {% extends "admin/base_site.html" %}
 {% load i18n static %}
 
-{% block content %}
-<section class="admin-hero">
-    <div>
-        <span class="admin-eyebrow">Administracion</span>
-        <h1>Panel central del sistema</h1>
-        <p>Gestiona catalogos, personal, pagos, cuentas y seguimiento operativo desde un entorno unificado.</p>
-    </div>
-    <div class="admin-hero-badge">Backoffice activo</div>
-</section>
-
-<section class="admin-kpis">
-    <article class="admin-kpi">
-        <span>Modulos</span>
-        <strong>{{ app_list|length }}</strong>
-    </article>
-    <article class="admin-kpi">
-        <span>Entorno</span>
-        <strong>Administracion</strong>
-    </article>
-    <article class="admin-kpi">
-        <span>Acceso</span>
-        <strong>Seguro</strong>
-    </article>
-</section>
-
-<div id="content-main">
-    {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+{% block breadcrumbs %}
+<div class="admin-breadcrumbs-shell">
+    <a href="{% url 'admin:index' %}">Inicio</a>
+    <span>/</span>
+    <span>Centro de administracion</span>
 </div>
+{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block content %}
+<section class="admin-dashboard-shell admin-dashboard-refined">
+    <section class="admin-hero admin-hero-refined">
+        <div class="admin-hero-copy">
+            <span class="admin-eyebrow">Administracion general</span>
+            <h1>Centro de administracion</h1>
+        </div>
+        <div class="admin-hero-brand">
+            <img
+                class="admin-hero-logo"
+                src="{% static 'admin/img/logo-victorino-diroche.png.png' %}"
+                alt="Transporte Victorino Diroche, S.R.L."
+            >
+        </div>
+    </section>
+
+    <section class="admin-kpis admin-kpis-simple">
+        <article class="admin-kpi accent-orange">
+            <span>Modulos</span>
+            <strong>{{ app_list|length }}</strong>
+        </article>
+        <article class="admin-kpi accent-blue">
+            <span>Acceso</span>
+            <strong>Administracion</strong>
+        </article>
+        <article class="admin-kpi accent-indigo">
+            <span>Estado</span>
+            <strong>Activo</strong>
+        </article>
+    </section>
+
+    <section class="admin-section-card admin-module-panel">
+        <div class="admin-section-head">
+            <div>
+                <span class="admin-eyebrow">Modulos</span>
+                <h2>Gestion principal</h2>
+                <p>Accede rapidamente a las areas administrativas y crea nuevos registros sin salir del panel central.</p>
+            </div>
+            <span class="admin-section-pill">{{ app_list|length }} modulos activos</span>
+        </div>
+
+        <div class="admin-module-dropdown-list">
+            {% for app in app_list %}
+            <details class="admin-module-dropdown-card" {% if forloop.first %}open{% endif %}>
+                <summary class="admin-module-dropdown-summary">
+                    <span class="admin-module-dropdown-head">
+                        <span class="admin-module-dropdown-title">{{ app.name }}</span>
+                        <span class="admin-module-dropdown-meta">{{ app.models|length }} opciones disponibles</span>
+                    </span>
+                    <span class="admin-module-dropdown-chevron" aria-hidden="true"></span>
+                </summary>
+
+                <div class="admin-module-dropdown-body">
+                    {% for model in app.models %}
+                    <div class="admin-module-dropdown-row">
+                        <div class="admin-module-link-copy">
+                            {% if model.admin_url %}
+                            <a class="admin-module-link" href="{{ model.admin_url }}">{{ model.name }}</a>
+                            {% else %}
+                            <span class="admin-module-link">{{ model.name }}</span>
+                            {% endif %}
+                            <small>Gestionar registros</small>
+                        </div>
+                        <div class="admin-module-actions">
+                            {% if model.admin_url %}
+                            <a class="admin-action-link muted" href="{{ model.admin_url }}">Ver registros</a>
+                            {% endif %}
+                            {% if model.add_url %}
+                            <a class="admin-action-link" href="{{ model.add_url }}">Crear</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </details>
+            {% endfor %}
+        </div>
+    </section>
+</section>
 {% endblock %}

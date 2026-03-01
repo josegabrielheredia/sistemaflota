@@ -16,7 +16,7 @@ def dashboard(request):
 
     context = {
         "page_title": "Centro de control",
-        "page_intro": "Vista general operativa para inventario, personal, pagos y seguimiento de flota.",
+        "page_intro": "Vista general operativa para flota, combustible, personal, pagos y control administrativo.",
         "summary_cards": [
             {"label": "Productos", "value": Producto.objects.count(), "accent": "teal"},
             {"label": "Unidades en stock", "value": stock_total, "accent": "amber"},
@@ -67,10 +67,10 @@ def dashboard(request):
                 "href": "/reportes/",
             },
             {
-                "title": "Talento",
-                "text": "Planificacion interna y desarrollo del personal.",
-                "metric": f"{Licencia.objects.count()} licencias, {Capacitacion.objects.count()} capacitaciones, {Vacacion.objects.count()} vacaciones",
-                "href": "/recursos_humanos/capacitaciones/",
+                "title": "Licencias",
+                "text": "Seguimiento de licencias, vacaciones y novedades del personal.",
+                "metric": f"{Licencia.objects.count()} licencias y {Vacacion.objects.count()} vacaciones registradas",
+                "href": "/recursos_humanos/licencias/",
             },
         ],
         "recent_payments": Pago.objects.select_related("chofer").order_by("-fecha", "-id")[:5],

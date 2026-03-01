@@ -1,25 +1,47 @@
 {% extends "admin/base.html" %}
 {% load i18n static %}
 
-{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | MI SISTEMA FLOTA{% endblock %}
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | Transporte Victorino Diroche, S.R.L.{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'admin/css/admin-custom.css' %}?v=11">
+<link rel="stylesheet" href="{% static 'admin/css/admin-custom.css' %}?v=17">
 {% endblock %}
 
 {% block branding %}
 <div class="admin-branding">
     <a href="{% url 'admin:index' %}" class="admin-brand-link">
-        <span class="admin-brand-mark">MF</span>
+        <img
+            class="admin-brand-logo"
+            src="{% static 'admin/img/logo-victorino-diroche.png.png' %}"
+            alt="Transporte Victorino Diroche, S.R.L."
+        >
         <span class="admin-brand-copy">
-            <span class="admin-brand-overline">Control corporativo</span>
-            <span class="admin-brand-title">MI SISTEMA FLOTA</span>
+            <span class="admin-brand-overline">Panel administrativo</span>
+            <span class="admin-brand-title">Transporte Victorino Diroche, S.R.L.</span>
         </span>
     </a>
+</div>
+{% endblock %}
+
+{% block usertools %}
+<div class="admin-userbar">
+    <div class="admin-userbar-copy">
+        <span class="admin-userbar-label">Sesion activa</span>
+        <strong>{{ user.get_username }}</strong>
+    </div>
+    <div class="admin-userbar-links">
+        {% if user.has_usable_password %}
+        <a href="{% url 'admin:password_change' %}">Cambiar contrasena</a>
+        {% endif %}
+        <form id="logout-form" method="post" action="{% url 'admin:logout' %}">
+            {% csrf_token %}
+            <button type="submit">Cerrar sesion</button>
+        </form>
+    </div>
 </div>
 {% endblock %}
 
