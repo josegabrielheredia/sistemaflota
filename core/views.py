@@ -20,7 +20,7 @@ def dashboard(request):
         "summary_cards": [
             {"label": "Productos", "value": Producto.objects.count(), "accent": "teal"},
             {"label": "Unidades en stock", "value": stock_total, "accent": "amber"},
-            {"label": "Choferes activos", "value": Chofer.objects.count(), "accent": "blue"},
+            {"label": "Choferes subcontratistas", "value": Chofer.objects.count(), "accent": "blue"},
             {"label": "Pagos registrados", "value": f"RD$ {total_pagos:,.2f}", "accent": "green"},
         ],
         "module_cards": [
@@ -32,13 +32,13 @@ def dashboard(request):
             },
             {
                 "title": "Choferes",
-                "text": "Base operativa del personal de conduccion y sus licencias.",
-                "metric": f"{Chofer.objects.count()} choferes registrados",
+                "text": "Registro de choferes subcontratistas contratados por viaje o servicio.",
+                "metric": f"{Chofer.objects.count()} choferes subcontratistas",
                 "href": "/choferes/",
             },
             {
                 "title": "Pagos",
-                "text": "Seguimiento financiero de desembolsos a choferes.",
+                "text": "Seguimiento financiero de pagos por servicio vinculados a conduces.",
                 "metric": f"RD$ {total_pagos:,.2f} procesados",
                 "href": "/pagos/",
             },

@@ -5,8 +5,9 @@
     <div class="section-heading">
         <div>
             <span class="section-kicker">Operaciones</span>
-            <h2>Directorio de choferes</h2>
+            <h2>Choferes subcontratistas</h2>
         </div>
+        <a class="action-button" href="{% url 'registrar_chofer' %}">Registrar chofer</a>
     </div>
     <div class="table-responsive">
         <table class="table site-table align-middle mb-0">
@@ -15,6 +16,7 @@
                     <th>Nombre</th>
                     <th>Cedula</th>
                     <th>Licencia</th>
+                    <th>Pago preferido</th>
                 </tr>
             </thead>
             <tbody>
@@ -23,13 +25,14 @@
                     <td><strong>{{ chofer.nombre }}</strong></td>
                     <td>{{ chofer.cedula }}</td>
                     <td><span class="table-badge">{{ chofer.licencia }}</span></td>
+                    <td>{{ chofer.get_metodo_pago_preferido_display|default:"No definido" }}</td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="3">
+                    <td colspan="4">
                         <div class="empty-state">
-                            <strong>No hay choferes registrados</strong>
-                            <p>Registra el personal de conduccion para mantener la operacion documentada.</p>
+                            <strong>No hay choferes subcontratistas registrados</strong>
+                            <p>Registra cada chofer con su formulario operativo para documentar viajes, conduces y pagos por servicio.</p>
                         </div>
                     </td>
                 </tr>

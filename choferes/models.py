@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 
 class Chofer(models.Model):
@@ -7,6 +8,10 @@ class Chofer(models.Model):
         INACTIVO = "inactivo", "Inactivo"
         SUSPENDIDO = "suspendido", "Suspendido"
 
+    class MetodoPago(models.TextChoices):
+        CHEQUE = "cheque", "Cheque"
+        TRANSFERENCIA = "transferencia", "Transferencia"
+
     nombre = models.CharField(max_length=150)
     cedula = models.CharField(max_length=20, unique=True)
     telefono = models.CharField(max_length=20, blank=True)
@@ -14,23 +19,26 @@ class Chofer(models.Model):
     licencia = models.CharField(max_length=50)
     categoria_licencia = models.CharField(max_length=50, blank=True)
     vencimiento_licencia = models.DateField(null=True, blank=True)
-    empleado = models.OneToOneField(
-        "recursos_humanos.Empleado",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="perfil_chofer",
-    )
     estado = models.CharField(
         max_length=20,
         choices=Estado.choices,
         default=Estado.ACTIVO,
     )
+    metodo_pago_preferido = models.CharField(
+        max_length=20,
+        choices=MetodoPago.choices,
+        blank=True,
+    )
+    banco = models.CharField(max_length=100, blank=True)
+    titular_cuenta = models.CharField(max_length=150, blank=True)
+    numero_cuenta = models.CharField(max_length=50, blank=True)
+    honorario_referencial = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    fecha_registro = models.DateField(default=timezone.localdate, editable=False)
     observaciones = models.TextField(blank=True)
 
     class Meta:
-        verbose_name = "Chofer"
-        verbose_name_plural = "Choferes"
+        verbose_name = "Chofer subcontratista"
+        verbose_name_plural = "Choferes subcontratistas"
         ordering = ("nombre",)
 
     def __str__(self):

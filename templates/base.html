@@ -379,6 +379,168 @@
             font-weight: 800;
         }
 
+        .message-stack {
+            display: grid;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .site-message {
+            padding: 0.95rem 1rem;
+            border-radius: 18px;
+            border: 1px solid #dbe3ee;
+            background: #fff;
+            box-shadow: var(--shadow-md);
+            font-weight: 700;
+        }
+
+        .site-message.success {
+            background: linear-gradient(180deg, #f0fdf4 0%, #dcfce7 100%);
+            border-color: #bbf7d0;
+            color: #166534;
+        }
+
+        .site-message.error {
+            background: linear-gradient(180deg, #fff1f2 0%, #ffe4e6 100%);
+            border-color: #fecdd3;
+            color: #be123c;
+        }
+
+        .site-message.warning {
+            background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%);
+            border-color: #fde68a;
+            color: #92400e;
+        }
+
+        .site-message.info {
+            background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
+            border-color: #bfdbfe;
+            color: #1d4ed8;
+        }
+
+        .action-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 46px;
+            padding: 0.75rem 1rem;
+            border-radius: 14px;
+            border: 0;
+            background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+            color: #fff;
+            font-size: 0.82rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            box-shadow: 0 14px 30px rgba(37, 99, 235, 0.18);
+        }
+
+        .action-button.secondary {
+            background: #fff;
+            color: var(--text);
+            border: 1px solid var(--line);
+            box-shadow: none;
+        }
+
+        .site-form {
+            display: grid;
+            gap: 1.25rem;
+        }
+
+        .form-section {
+            padding: 1.2rem;
+            border-radius: 22px;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            border: 1px solid var(--line);
+        }
+
+        .form-section-head {
+            margin-bottom: 1rem;
+        }
+
+        .form-section-head h3 {
+            margin: 0;
+            font-family: "Plus Jakarta Sans", sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: -0.03em;
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .form-grid.two-columns {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .form-grid.three-columns {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .form-field {
+            display: grid;
+            gap: 0.4rem;
+            min-width: 0;
+        }
+
+        .form-field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-field label {
+            color: var(--text);
+            font-size: 0.86rem;
+            font-weight: 700;
+        }
+
+        .site-input {
+            width: 100%;
+            min-height: 48px;
+            padding: 0.78rem 0.9rem;
+            border-radius: 14px;
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            color: var(--text);
+            font-size: 0.94rem;
+            outline: none;
+            transition: border-color 140ms ease, box-shadow 140ms ease;
+        }
+
+        .site-textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        .site-input:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.14);
+        }
+
+        .form-field ul.errorlist,
+        .form-alert ul.errorlist {
+            margin: 0;
+            padding-left: 1rem;
+            color: #be123c;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .form-alert {
+            padding: 0.9rem 1rem;
+            border-radius: 16px;
+            border: 1px solid #fecdd3;
+            background: #fff1f2;
+            color: #be123c;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
         .split-layout {
             display: grid;
             grid-template-columns: minmax(0, 1.45fr) minmax(320px, 1fr);
@@ -525,6 +687,11 @@
             .split-layout {
                 grid-template-columns: 1fr;
             }
+
+            .form-grid.two-columns,
+            .form-grid.three-columns {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 767.98px) {
@@ -563,7 +730,7 @@
         <nav class="sidebar-nav">
             <a class="sidebar-link {% if request.path == '/' %}active{% endif %}" href="/"><span>Dashboard</span><small>Resumen ejecutivo</small></a>
             <a class="sidebar-link {% if '/inventario/' in request.path %}active{% endif %}" href="/inventario/"><span>Inventario</span><small>Productos y stock</small></a>
-            <a class="sidebar-link {% if '/choferes/' in request.path %}active{% endif %}" href="/choferes/"><span>Choferes</span><small>Operacion y licencias</small></a>
+            <a class="sidebar-link {% if '/choferes/' in request.path %}active{% endif %}" href="/choferes/"><span>Choferes</span><small>Subcontratistas y conduces</small></a>
             <a class="sidebar-link {% if '/pagos/' in request.path %}active{% endif %}" href="/pagos/"><span>Pagos</span><small>Control de desembolsos</small></a>
             <a class="sidebar-link {% if '/cuentas/' in request.path %}active{% endif %}" href="/cuentas/"><span>Cuentas</span><small>Flujo financiero</small></a>
             <a class="sidebar-link {% if '/recursos_humanos/' in request.path %}active{% endif %}" href="/recursos_humanos/empleados/"><span>RRHH</span><small>Talento y desarrollo</small></a>
@@ -609,6 +776,14 @@
                     <div class="status-note">Panel central para supervision administrativa y operativa.</div>
                 </div>
             </section>
+
+            {% if messages %}
+            <section class="message-stack">
+                {% for message in messages %}
+                <div class="site-message {{ message.tags|default:'info' }}">{{ message }}</div>
+                {% endfor %}
+            </section>
+            {% endif %}
 
             {% if summary_cards %}
             <section class="stats-grid">
