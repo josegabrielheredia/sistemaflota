@@ -447,6 +447,10 @@
             gap: 1.25rem;
         }
 
+        .site-form.compact-form {
+            gap: 0;
+        }
+
         .form-section {
             padding: 1.2rem;
             border-radius: 22px;
@@ -536,6 +540,51 @@
 
         .form-actions {
             display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .form-grid.align-end {
+            align-items: end;
+        }
+
+        .inline-actions {
+            justify-content: flex-start;
+        }
+
+        .report-total-card {
+            min-width: 230px;
+            padding: 0.95rem 1rem;
+            border-radius: 18px;
+            background: linear-gradient(180deg, #0f172a 0%, #172554 100%);
+            color: #fff;
+            box-shadow: 0 16px 34px rgba(15, 23, 42, 0.2);
+        }
+
+        .report-total-card span,
+        .report-total-card strong {
+            display: block;
+        }
+
+        .report-total-card span {
+            color: rgba(255,255,255,0.64);
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .report-total-card strong {
+            margin-top: 0.4rem;
+            font-family: "Plus Jakarta Sans", sans-serif;
+            font-size: 1.25rem;
+            letter-spacing: -0.03em;
+        }
+
+        .report-head-actions {
+            display: flex;
+            align-items: stretch;
             justify-content: flex-end;
             gap: 0.75rem;
             flex-wrap: wrap;
