@@ -132,6 +132,18 @@ div.breadcrumbs a {
     padding-top: 18px;
 }
 
+#changelist-filter {
+    display: none !important;
+}
+
+.change-list #changelist.filtered .paginator,
+.change-list #changelist.filtered #toolbar,
+.change-list #changelist.filtered #changelist-form,
+.change-list #changelist.filtered .results {
+    margin-right: 0 !important;
+    width: 100% !important;
+}
+
 #nav-sidebar,
 .toggle-nav-sidebar,
 .toggle-nav-sidebar-button {

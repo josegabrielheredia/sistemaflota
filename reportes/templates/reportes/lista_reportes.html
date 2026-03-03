@@ -17,7 +17,8 @@
                 {{ form.tipo_reporte.errors }}
             </div>
             <div class="form-actions inline-actions">
-                <button class="action-button" type="submit">Generar reporte</button>
+                <button class="action-button secondary" type="submit" name="action" value="view">Ver en pagina</button>
+                <button class="action-button" type="submit" name="action" value="excel">Generar a Excel</button>
             </div>
         </div>
     </form>
@@ -31,12 +32,9 @@
             <h2>{{ selected_report.title }}</h2>
             <p class="table-note">{{ selected_report.description }}</p>
         </div>
-        <div class="report-head-actions">
-            <a class="action-button secondary" href="?{{ excel_query }}">Exportar a Excel</a>
-            <div class="report-total-card">
-                <span>{{ selected_report.total_label }}</span>
-                <strong>{{ selected_report.total_value }}</strong>
-            </div>
+        <div class="report-total-card">
+            <span>{{ selected_report.total_label }}</span>
+            <strong>{{ selected_report.total_value }}</strong>
         </div>
     </div>
 

@@ -12,7 +12,6 @@ class DepartamentoAdmin(admin.ModelAdmin):
 @admin.register(Cargo)
 class CargoAdmin(admin.ModelAdmin):
     list_display = ("nombre", "departamento")
-    list_filter = ("departamento",)
     search_fields = ("nombre", "departamento__nombre")
 
 
@@ -34,7 +33,6 @@ class CapacitacionInline(admin.TabularInline):
 @admin.register(Empleado)
 class EmpleadoAdmin(admin.ModelAdmin):
     list_display = ("nombre", "cedula", "cargo", "fecha_ingreso", "estado")
-    list_filter = ("estado", "cargo__departamento", "cargo")
     search_fields = ("nombre", "cedula", "telefono", "correo")
     inlines = [LicenciaInline, VacacionInline, CapacitacionInline]
 
@@ -42,21 +40,18 @@ class EmpleadoAdmin(admin.ModelAdmin):
 @admin.register(TipoLicencia)
 class TipoLicenciaAdmin(admin.ModelAdmin):
     list_display = ("nombre", "requiere_aprobacion", "activo")
-    list_filter = ("requiere_aprobacion", "activo")
     search_fields = ("nombre",)
 
 
 @admin.register(Licencia)
 class LicenciaAdmin(admin.ModelAdmin):
     list_display = ("empleado", "tipo", "fecha_inicio", "fecha_fin", "estado")
-    list_filter = ("estado", "tipo")
     search_fields = ("empleado__nombre", "tipo__nombre", "motivo")
 
 
 @admin.register(Vacacion)
 class VacacionAdmin(admin.ModelAdmin):
     list_display = ("empleado", "fecha_inicio", "fecha_fin", "estado")
-    list_filter = ("estado",)
     search_fields = ("empleado__nombre",)
 
 

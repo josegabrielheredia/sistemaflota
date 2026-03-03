@@ -19,7 +19,6 @@ class ChoferAdmin(admin.ModelAdmin):
         "honorario_referencial",
         "estado",
     )
-    list_filter = ("estado", "categoria_licencia", "metodo_pago_preferido")
     search_fields = ("nombre", "cedula", "licencia", "telefono", "banco", "titular_cuenta", "numero_cuenta")
     fieldsets = (
         ("Identificacion", {"fields": ("nombre", "cedula", "telefono", "direccion")}),
@@ -34,5 +33,4 @@ class ChoferAdmin(admin.ModelAdmin):
 @admin.register(Conduce)
 class ConduceAdmin(admin.ModelAdmin):
     list_display = ("numero", "chofer", "vehiculo", "fecha", "monto_generado", "estado")
-    list_filter = ("estado", "fecha")
     search_fields = ("numero", "chofer__nombre", "vehiculo__placa", "origen", "destino")

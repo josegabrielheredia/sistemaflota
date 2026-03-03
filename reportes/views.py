@@ -1,23 +1,26 @@
-from urllib.parse import urlencode
-
 from django.db.models import Count, Sum
 from django.db.models.functions import TruncMonth
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
 
-from choferes.models import Chofer
-from cuentas.models import Cuenta
-from inventario.models import SuministroCombustible
+from choferes.models import Chofer, Conduce
+from cuentas.models import AbonoCuenta, Cuenta
+from inventario.models import MovimientoInventario, Producto, SuministroCombustible
 from pagos.models import Pago
-from recursos_humanos.models import Empleado, Licencia, Vacacion
-from tracking.models import Vehiculo
+from recursos_humanos.models import Empleado, Licencia, TipoLicencia, Vacacion
+from tracking.models import Contenedor, Vehiculo
 
 from .forms import GeneradorReporteForm
 
 
 def _format_currency(value):
     return f"RD$ {value:,.2f}"
+
+
+def _choice_label(choices, value, default="No definido"):
+    mapping = dict(choices)
+    return mapping.get(value, value or default)
 
 
 def _slugify_filename(value):
@@ -117,6 +120,58 @@ def _build_report(tipo_reporte):
             "total_value": len(registros),
         }
 
+    if tipo_reporte == "choferes_por_estado":
+        registros = list(Chofer.objects.values("estado").annotate(total=Count("id")).order_by("estado"))
+        return {
+            "title": "Choferes por estado",
+            "description": "Resumen de choferes subcontratistas agrupados por estado operativo.",
+            "columns": ["Estado", "Cantidad"],
+            "rows": [[_choice_label(Chofer.Estado.choices, item["estado"]), item["total"]] for item in registros],
+            "total_label": "Choferes registrados",
+            "total_value": sum(item["total"] for item in registros),
+        }
+
+    if tipo_reporte == "choferes_por_categoria_licencia":
+        registros = list(
+            Chofer.objects.values("categoria_licencia")
+            .annotate(total=Count("id"))
+            .order_by("categoria_licencia")
+        )
+        return {
+            "title": "Choferes por categoria de licencia",
+            "description": "Distribucion de choferes segun la categoria de licencia registrada.",
+            "columns": ["Categoria de licencia", "Cantidad"],
+            "rows": [[item["categoria_licencia"] or "Sin categoria", item["total"]] for item in registros],
+            "total_label": "Choferes contabilizados",
+            "total_value": sum(item["total"] for item in registros),
+        }
+
+    if tipo_reporte == "choferes_por_metodo_pago":
+        registros = list(
+            Chofer.objects.values("metodo_pago_preferido")
+            .annotate(total=Count("id"))
+            .order_by("metodo_pago_preferido")
+        )
+        return {
+            "title": "Choferes por metodo de pago preferido",
+            "description": "Clasificacion de subcontratistas por metodo de pago configurado.",
+            "columns": ["Metodo de pago", "Cantidad"],
+            "rows": [[_choice_label(Chofer.MetodoPago.choices, item["metodo_pago_preferido"]), item["total"]] for item in registros],
+            "total_label": "Choferes contabilizados",
+            "total_value": sum(item["total"] for item in registros),
+        }
+
+    if tipo_reporte == "conduces_por_estado":
+        registros = list(Conduce.objects.values("estado").annotate(total=Count("id")).order_by("estado"))
+        return {
+            "title": "Conduces por estado",
+            "description": "Resumen del flujo de conduces segun su estado actual.",
+            "columns": ["Estado", "Cantidad"],
+            "rows": [[_choice_label(Conduce.Estado.choices, item["estado"]), item["total"]] for item in registros],
+            "total_label": "Conduces registrados",
+            "total_value": sum(item["total"] for item in registros),
+        }
+
     if tipo_reporte == "licencias_activas":
         registros = list(
             Licencia.objects.select_related("empleado", "tipo")
@@ -138,6 +193,61 @@ def _build_report(tipo_reporte):
                 for item in registros
             ],
             "total_label": "Licencias activas",
+            "total_value": len(registros),
+        }
+
+    if tipo_reporte == "empleados_por_estado":
+        registros = list(Empleado.objects.values("estado").annotate(total=Count("id")).order_by("estado"))
+        return {
+            "title": "Empleados por estado",
+            "description": "Clasificacion del personal interno por estado laboral.",
+            "columns": ["Estado", "Cantidad"],
+            "rows": [[_choice_label(Empleado.Estado.choices, item["estado"]), item["total"]] for item in registros],
+            "total_label": "Empleados contabilizados",
+            "total_value": sum(item["total"] for item in registros),
+        }
+
+    if tipo_reporte == "empleados_por_departamento":
+        registros = list(
+            Empleado.objects.values("cargo__departamento__nombre")
+            .annotate(total=Count("id"))
+            .order_by("cargo__departamento__nombre")
+        )
+        return {
+            "title": "Empleados por departamento",
+            "description": "Distribucion del personal interno por departamento.",
+            "columns": ["Departamento", "Cantidad"],
+            "rows": [[item["cargo__departamento__nombre"] or "Sin departamento", item["total"]] for item in registros],
+            "total_label": "Empleados contabilizados",
+            "total_value": sum(item["total"] for item in registros),
+        }
+
+    if tipo_reporte == "licencias_por_estado":
+        registros = list(Licencia.objects.values("estado").annotate(total=Count("id")).order_by("estado"))
+        return {
+            "title": "Licencias por estado",
+            "description": "Resumen de licencias registradas segun su estado.",
+            "columns": ["Estado", "Cantidad"],
+            "rows": [[_choice_label(Licencia.Estado.choices, item["estado"]), item["total"]] for item in registros],
+            "total_label": "Licencias contabilizadas",
+            "total_value": sum(item["total"] for item in registros),
+        }
+
+    if tipo_reporte == "tipos_licencia_configurados":
+        registros = list(
+            TipoLicencia.objects.values("nombre", "requiere_aprobacion", "activo")
+            .annotate(total=Count("id"))
+            .order_by("nombre")
+        )
+        return {
+            "title": "Tipos de licencia configurados",
+            "description": "Catalogo de tipos de licencia configurados en RRHH.",
+            "columns": ["Tipo de licencia", "Requiere aprobacion", "Activo"],
+            "rows": [
+                [item["nombre"], "Si" if item["requiere_aprobacion"] else "No", "Si" if item["activo"] else "No"]
+                for item in registros
+            ],
+            "total_label": "Tipos configurados",
             "total_value": len(registros),
         }
 
@@ -164,6 +274,17 @@ def _build_report(tipo_reporte):
             "total_value": len(registros),
         }
 
+    if tipo_reporte == "vacaciones_por_estado":
+        registros = list(Vacacion.objects.values("estado").annotate(total=Count("id")).order_by("estado"))
+        return {
+            "title": "Vacaciones por estado",
+            "description": "Resumen de vacaciones segun su estado de ejecucion.",
+            "columns": ["Estado", "Cantidad"],
+            "rows": [[_choice_label(Vacacion.Estado.choices, item["estado"]), item["total"]] for item in registros],
+            "total_label": "Vacaciones contabilizadas",
+            "total_value": sum(item["total"] for item in registros),
+        }
+
     if tipo_reporte == "pagos_por_mes":
         registros = list(
             Pago.objects.annotate(periodo=TruncMonth("fecha"))
@@ -184,6 +305,78 @@ def _build_report(tipo_reporte):
             ],
             "total_label": "Total general pagado",
             "total_value": _format_currency(Pago.objects.aggregate(total=Sum("monto"))["total"] or 0),
+        }
+
+    if tipo_reporte == "pagos_por_metodo":
+        registros = list(
+            Pago.objects.values("metodo")
+            .annotate(total_pagado=Sum("monto"), cantidad=Count("id"))
+            .order_by("metodo")
+        )
+        return {
+            "title": "Pagos a choferes por metodo",
+            "description": "Resumen de pagos agrupados por metodo de desembolso.",
+            "columns": ["Metodo", "Cantidad", "Total pagado"],
+            "rows": [[_choice_label(Pago.Metodo.choices, item["metodo"]), item["cantidad"], _format_currency(item["total_pagado"] or 0)] for item in registros],
+            "total_label": "Total general pagado",
+            "total_value": _format_currency(sum((item["total_pagado"] or 0) for item in registros)),
+        }
+
+    if tipo_reporte == "productos_por_categoria":
+        registros = list(
+            Producto.objects.values("categoria")
+            .annotate(total=Count("id"), stock=Sum("cantidad"))
+            .order_by("categoria")
+        )
+        return {
+            "title": "Productos por categoria",
+            "description": "Clasificacion de inventario segun categoria de producto.",
+            "columns": ["Categoria", "Productos", "Stock total"],
+            "rows": [[_choice_label(Producto.Categoria.choices, item["categoria"]), item["total"], item["stock"] or 0] for item in registros],
+            "total_label": "Productos registrados",
+            "total_value": sum(item["total"] for item in registros),
+        }
+
+    if tipo_reporte == "productos_activos":
+        activos = Producto.objects.filter(activo=True).count()
+        inactivos = Producto.objects.filter(activo=False).count()
+        return {
+            "title": "Productos activos e inactivos",
+            "description": "Resumen del inventario segun disponibilidad operativa del producto.",
+            "columns": ["Estado", "Cantidad"],
+            "rows": [["Activos", activos], ["Inactivos", inactivos]],
+            "total_label": "Productos contabilizados",
+            "total_value": activos + inactivos,
+        }
+
+    if tipo_reporte == "movimientos_por_tipo":
+        registros = list(
+            MovimientoInventario.objects.values("tipo")
+            .annotate(total=Count("id"), cantidad_total=Sum("cantidad"))
+            .order_by("tipo")
+        )
+        return {
+            "title": "Movimientos de inventario por tipo",
+            "description": "Resumen de entradas, salidas y ajustes del inventario.",
+            "columns": ["Tipo", "Movimientos", "Cantidad total"],
+            "rows": [[_choice_label(MovimientoInventario.Tipo.choices, item["tipo"]), item["total"], item["cantidad_total"] or 0] for item in registros],
+            "total_label": "Movimientos contabilizados",
+            "total_value": sum(item["total"] for item in registros),
+        }
+
+    if tipo_reporte == "suministros_por_estado_pago":
+        registros = list(
+            SuministroCombustible.objects.values("estado_pago")
+            .annotate(total=Count("id"), monto_pendiente=Sum("saldo_pendiente"))
+            .order_by("estado_pago")
+        )
+        return {
+            "title": "Suministros por estado de pago",
+            "description": "Resumen de despachos de combustible agrupados por estado de pago.",
+            "columns": ["Estado de pago", "Cantidad", "Saldo pendiente"],
+            "rows": [[_choice_label(SuministroCombustible.EstadoPago.choices, item["estado_pago"]), item["total"], _format_currency(item["monto_pendiente"] or 0)] for item in registros],
+            "total_label": "Suministros contabilizados",
+            "total_value": sum(item["total"] for item in registros),
         }
 
     if tipo_reporte == "vehiculos_disponibles":
@@ -207,6 +400,28 @@ def _build_report(tipo_reporte):
             ],
             "total_label": "Vehiculos disponibles",
             "total_value": len(registros),
+        }
+
+    if tipo_reporte == "vehiculos_por_estado":
+        registros = list(Vehiculo.objects.values("estado").annotate(total=Count("id")).order_by("estado"))
+        return {
+            "title": "Vehiculos por estado",
+            "description": "Resumen de la flota segun el estado operativo de cada vehiculo.",
+            "columns": ["Estado", "Cantidad"],
+            "rows": [[_choice_label(Vehiculo.Estado.choices, item["estado"]), item["total"]] for item in registros],
+            "total_label": "Vehiculos contabilizados",
+            "total_value": sum(item["total"] for item in registros),
+        }
+
+    if tipo_reporte == "contenedores_por_estado":
+        registros = list(Contenedor.objects.values("estado").annotate(total=Count("id")).order_by("estado"))
+        return {
+            "title": "Contenedores por estado",
+            "description": "Resumen de contenedores agrupados por estado operativo.",
+            "columns": ["Estado", "Cantidad"],
+            "rows": [[_choice_label(Contenedor.Estado.choices, item["estado"]), item["total"]] for item in registros],
+            "total_label": "Contenedores contabilizados",
+            "total_value": sum(item["total"] for item in registros),
         }
 
     if tipo_reporte == "cuentas_pendientes":
@@ -234,6 +449,51 @@ def _build_report(tipo_reporte):
                     estado__in=[Cuenta.Estado.PENDIENTE, Cuenta.Estado.PARCIAL, Cuenta.Estado.VENCIDA]
                 ).aggregate(total=Sum("saldo_pendiente"))["total"] or 0
             ),
+        }
+
+    if tipo_reporte == "cuentas_por_tipo":
+        registros = list(
+            Cuenta.objects.values("tipo")
+            .annotate(total=Count("id"), saldo=Sum("saldo_pendiente"))
+            .order_by("tipo")
+        )
+        return {
+            "title": "Cuentas por tipo",
+            "description": "Resumen de cuentas clasificadas en por pagar y por cobrar.",
+            "columns": ["Tipo", "Cantidad", "Saldo pendiente"],
+            "rows": [[_choice_label(Cuenta.Tipo.choices, item["tipo"]), item["total"], _format_currency(item["saldo"] or 0)] for item in registros],
+            "total_label": "Cuentas contabilizadas",
+            "total_value": sum(item["total"] for item in registros),
+        }
+
+    if tipo_reporte == "cuentas_por_estado":
+        registros = list(
+            Cuenta.objects.values("estado")
+            .annotate(total=Count("id"), saldo=Sum("saldo_pendiente"))
+            .order_by("estado")
+        )
+        return {
+            "title": "Cuentas por estado",
+            "description": "Resumen de cuentas segun su estado financiero.",
+            "columns": ["Estado", "Cantidad", "Saldo pendiente"],
+            "rows": [[_choice_label(Cuenta.Estado.choices, item["estado"]), item["total"], _format_currency(item["saldo"] or 0)] for item in registros],
+            "total_label": "Cuentas contabilizadas",
+            "total_value": sum(item["total"] for item in registros),
+        }
+
+    if tipo_reporte == "abonos_por_metodo":
+        registros = list(
+            AbonoCuenta.objects.values("metodo")
+            .annotate(total=Count("id"), monto=Sum("monto"))
+            .order_by("metodo")
+        )
+        return {
+            "title": "Abonos de cuenta por metodo",
+            "description": "Resumen de abonos realizados segun el metodo utilizado.",
+            "columns": ["Metodo", "Cantidad", "Monto"],
+            "rows": [[_choice_label(AbonoCuenta.Metodo.choices, item["metodo"]), item["total"], _format_currency(item["monto"] or 0)] for item in registros],
+            "total_label": "Total abonado",
+            "total_value": _format_currency(sum((item["monto"] or 0) for item in registros)),
         }
 
     if tipo_reporte == "combustible_pendiente":
@@ -271,7 +531,7 @@ def lista_reportes(request):
 
     if form.is_valid():
         selected_report = _build_report(form.cleaned_data["tipo_reporte"])
-        if request.GET.get("export") == "excel" and selected_report:
+        if request.GET.get("action") == "excel" and selected_report:
             return _export_report_to_excel(selected_report)
 
     return render(
@@ -287,13 +547,5 @@ def lista_reportes(request):
             ],
             "form": form,
             "selected_report": selected_report,
-            "excel_query": urlencode(
-                {
-                    "tipo_reporte": form.cleaned_data["tipo_reporte"],
-                    "export": "excel",
-                }
-            )
-            if form.is_valid() and selected_report
-            else "",
         },
     )
