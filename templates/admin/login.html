@@ -57,7 +57,12 @@
                 <div class="form-row">
                     {{ form.password.errors }}
                     {{ form.password.label_tag }}
-                    {{ form.password }}
+                    <div class="password-field-wrap">
+                        {{ form.password }}
+                        <button type="button" class="password-toggle" aria-label="Mostrar contraseña" aria-pressed="false">
+                            <span class="password-toggle-eye" aria-hidden="true"></span>
+                        </button>
+                    </div>
                     <input type="hidden" name="next" value="{{ next }}">
                 </div>
 
@@ -75,4 +80,26 @@
         </div>
     </section>
 </div>
+{% endblock %}
+
+{% block footer %}
+{{ block.super }}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const passwordInput = document.querySelector("#id_password");
+        const toggleButton = document.querySelector(".password-toggle");
+
+        if (!passwordInput || !toggleButton) {
+            return;
+        }
+
+        toggleButton.addEventListener("click", function () {
+            const isPassword = passwordInput.type === "password";
+            passwordInput.type = isPassword ? "text" : "password";
+            toggleButton.setAttribute("aria-pressed", String(isPassword));
+            toggleButton.setAttribute("aria-label", isPassword ? "Ocultar contraseña" : "Mostrar contraseña");
+            toggleButton.classList.toggle("is-visible", isPassword);
+        });
+    });
+</script>
 {% endblock %}

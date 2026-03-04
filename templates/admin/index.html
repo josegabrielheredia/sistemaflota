@@ -1,93 +1,113 @@
 {% extends "admin/base_site.html" %}
 {% load i18n static %}
 
-{% block breadcrumbs %}
-<div class="admin-breadcrumbs-shell">
-    <a href="{% url 'admin:index' %}">Inicio</a>
-    <span>/</span>
-    <span>Centro de administracion</span>
-</div>
-{% endblock %}
+{% block bodyclass %}dashboard{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
 
 {% block content_title %}{% endblock %}
 
 {% block content %}
-<section class="admin-dashboard-shell admin-dashboard-refined">
-    <section class="admin-hero admin-hero-refined">
-        <div class="admin-hero-copy">
-            <span class="admin-eyebrow">Administracion general</span>
-            <h1>Centro de administracion</h1>
-        </div>
-        <div class="admin-hero-brand">
-            <img
-                class="admin-hero-logo"
-                src="{% static 'admin/img/logo-victorino-diroche.png.png' %}"
-                alt="Transporte Victorino Diroche, S.R.L."
-            >
-        </div>
-    </section>
-
-    <section class="admin-kpis admin-kpis-simple">
-        <article class="admin-kpi accent-orange">
-            <span>Modulos</span>
-            <strong>{{ app_list|length }}</strong>
-        </article>
-        <article class="admin-kpi accent-blue">
-            <span>Acceso</span>
-            <strong>Administracion</strong>
-        </article>
-        <article class="admin-kpi accent-indigo">
-            <span>Estado</span>
-            <strong>Activo</strong>
-        </article>
-    </section>
-
-    <section class="admin-section-card admin-module-panel">
-        <div class="admin-section-head">
-            <div>
-                <span class="admin-eyebrow">Modulos</span>
-                <h2>Gestion principal</h2>
-                <p>Accede rapidamente a las areas administrativas y crea nuevos registros sin salir del panel central.</p>
+<div class="app-shell admin-app-shell">
+    <aside class="sidebar admin-dashboard-sidebar">
+        <div class="brand-panel">
+            <div class="brand-row">
+                <img class="brand-logo" src="{% static 'admin/img/logo-victorino-diroche.png.png' %}" alt="Transporte Victorino Diroche, S.R.L.">
+                <span class="brand-stack">
+                    <span class="brand-overline">Panel operativo</span>
+                    <span class="brand-title">Transporte Victorino Diroche, S.R.L.</span>
+                </span>
             </div>
-            <span class="admin-section-pill">{{ app_list|length }} modulos activos</span>
         </div>
 
-        <div class="admin-module-dropdown-list">
+        <div class="sidebar-section-title">Navegacion</div>
+        <nav class="sidebar-nav" role="tablist" aria-label="Modulos administrativos">
             {% for app in app_list %}
-            <details class="admin-module-dropdown-card" {% if forloop.first %}open{% endif %}>
-                <summary class="admin-module-dropdown-summary">
-                    <span class="admin-module-dropdown-head">
-                        <span class="admin-module-dropdown-title">{{ app.name }}</span>
-                        <span class="admin-module-dropdown-meta">{{ app.models|length }} opciones disponibles</span>
-                    </span>
-                    <span class="admin-module-dropdown-chevron" aria-hidden="true"></span>
-                </summary>
+            <button class="sidebar-link admin-sidebar-tab{% if forloop.first %} active{% endif %}" type="button" data-target="admin-dashboard-{{ forloop.counter }}" role="tab" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">
+                <span>{{ app.name }}</span>
+                <small>{{ app.models|length }} opciones administrativas</small>
+            </button>
+            {% endfor %}
+        </nav>
 
-                <div class="admin-module-dropdown-body">
-                    {% for model in app.models %}
-                    <div class="admin-module-dropdown-row">
-                        <div class="admin-module-link-copy">
-                            {% if model.admin_url %}
-                            <a class="admin-module-link" href="{{ model.admin_url }}">{{ model.name }}</a>
-                            {% else %}
-                            <span class="admin-module-link">{{ model.name }}</span>
-                            {% endif %}
-                            <small>Gestionar registros</small>
-                        </div>
-                        <div class="admin-module-actions">
-                            {% if model.admin_url %}
-                            <a class="admin-action-link muted" href="{{ model.admin_url }}">Ver registros</a>
-                            {% endif %}
-                            {% if model.add_url %}
-                            <a class="admin-action-link" href="{{ model.add_url }}">Crear</a>
-                            {% endif %}
+        <div class="sidebar-footer">Operacion en linea</div>
+    </aside>
+
+    <div class="main-panel admin-dashboard-main">
+        <main class="main-content">
+            {% for app in app_list %}
+            <section id="admin-dashboard-{{ forloop.counter }}" class="admin-dashboard-view{% if forloop.first %} is-active{% endif %}" role="tabpanel">
+                <section class="page-topbar">
+                    <div>
+                        <span class="eyebrow">Modulo</span>
+                        <h1>{{ app.name }}</h1>
+                        <p>Gestiona registros, consulta informacion y crea nuevas entradas desde una vista administrativa clara.</p>
+                    </div>
+                </section>
+
+                <section class="content-card">
+                    <div class="section-heading">
+                        <div>
+                            <span class="section-kicker">Registros</span>
+                            <h2>{{ app.models|length }} opciones administrativas</h2>
                         </div>
                     </div>
-                    {% endfor %}
-                </div>
-            </details>
+                    <div class="module-list">
+                        {% for model in app.models %}
+                        <div class="module-list-row admin-module-row">
+                            <div class="module-list-copy">
+                                {% if model.admin_url %}
+                                <h3><a class="admin-module-link" href="{{ model.admin_url }}">{{ model.name }}</a></h3>
+                                {% else %}
+                                <h3>{{ model.name }}</h3>
+                                {% endif %}
+                                <p>Gestion y mantenimiento de registros.</p>
+                            </div>
+                            <div class="module-list-meta">
+                                {% if model.admin_url %}
+                                <a class="module-list-link admin-module-action" href="{{ model.admin_url }}">Abrir</a>
+                                {% endif %}
+                                {% if model.add_url %}
+                                <a class="module-list-metric admin-module-action-pill" href="{{ model.add_url }}">Nuevo</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="admin-empty-state">
+                            <strong>Sin opciones disponibles</strong>
+                            <p>Este modulo todavia no tiene elementos configurados en el panel administrativo.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </section>
+            </section>
             {% endfor %}
-        </div>
-    </section>
-</section>
+        </main>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const tabs = Array.from(document.querySelectorAll(".admin-sidebar-tab"));
+    const panels = Array.from(document.querySelectorAll(".admin-dashboard-view"));
+
+    function activate(targetId) {
+        tabs.forEach((tab) => {
+            const isActive = tab.dataset.target === targetId;
+            tab.classList.toggle("active", isActive);
+            tab.setAttribute("aria-selected", isActive ? "true" : "false");
+        });
+
+        panels.forEach((panel) => {
+            panel.classList.toggle("is-active", panel.id === targetId);
+        });
+    }
+
+    tabs.forEach((tab) => {
+        tab.addEventListener("click", function () {
+            activate(tab.dataset.target);
+        });
+    });
+});
+</script>
 {% endblock %}
