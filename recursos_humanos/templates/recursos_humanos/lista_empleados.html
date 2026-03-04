@@ -13,29 +13,51 @@
         <div>
             <span class="section-kicker">Talento</span>
             <h2>Plantilla de empleados</h2>
+            <p>Consulta estructura organizacional, estado laboral y datos de contacto del personal registrado.</p>
         </div>
     </div>
     <div class="table-responsive">
         <table class="table site-table align-middle mb-0">
             <thead>
                 <tr>
-                    <th>Nombre</th>
-                    <th>Cedula</th>
-                    <th>Cargo</th>
+                    <th>Empleado</th>
+                    <th>Cargo y area</th>
+                    <th>Contacto</th>
+                    <th>Estado</th>
                     <th>Ingreso</th>
                 </tr>
             </thead>
             <tbody>
                 {% for empleado in empleados %}
                 <tr>
-                    <td><strong>{{ empleado.nombre }}</strong></td>
-                    <td>{{ empleado.cedula }}</td>
-                    <td>{{ empleado.cargo }}</td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-primary">{{ empleado.nombre }}</span>
+                            <span class="table-secondary">{{ empleado.cedula }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-primary">{{ empleado.cargo.nombre }}</span>
+                            <span class="table-secondary">{{ empleado.cargo.departamento.nombre }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-primary">{{ empleado.telefono|default:"Sin telefono" }}</span>
+                            <span class="table-secondary">{{ empleado.correo|default:"Sin correo registrado" }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="table-badge {% if empleado.estado == 'activo' %}success{% elif empleado.estado == 'suspendido' %}warning{% else %}neutral{% endif %}">
+                            {{ empleado.get_estado_display }}
+                        </span>
+                    </td>
                     <td>{{ empleado.fecha_ingreso|date:"d/m/Y" }}</td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="4">
+                    <td colspan="5">
                         <div class="empty-state">
                             <strong>No hay empleados registrados</strong>
                             <p>La nomina visible aparecera aqui cuando se agreguen colaboradores al sistema.</p>

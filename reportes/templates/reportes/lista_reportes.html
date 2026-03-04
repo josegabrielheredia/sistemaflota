@@ -6,26 +6,50 @@
         <div>
             <span class="section-kicker">Analitica</span>
             <h2>Generador de reportes</h2>
+            <p>Selecciona el reporte, define un periodo si aplica y decide si quieres verlo en pantalla o exportarlo a Excel.</p>
         </div>
     </div>
 
-    <form method="get" class="site-form compact-form">
-        <div class="form-grid two-columns align-end">
-            <div class="form-field">
-                {{ form.tipo_reporte.label_tag }}
-                {{ form.tipo_reporte }}
-                {{ form.tipo_reporte.errors }}
+    <form method="get" class="site-form form-shell narrow">
+        <div class="form-section form-toolbar">
+            <div class="form-section-head">
+                <span class="section-kicker">Parametros</span>
+                <h3>Configuracion del reporte</h3>
+                <p>Selecciona la salida y, si aplica, acota el periodo para obtener un resultado mas preciso.</p>
             </div>
-            <div class="form-actions inline-actions">
+            <div class="form-grid three-columns align-end">
+                <div class="form-field">
+                    {{ form.tipo_reporte.label_tag }}
+                    {{ form.tipo_reporte }}
+                    {{ form.tipo_reporte.errors }}
+                    <span class="form-field-hint">Cada opcion genera un consolidado distinto del sistema.</span>
+                </div>
+                <div class="form-field">
+                    {{ form.fecha_desde.label_tag }}
+                    {{ form.fecha_desde }}
+                    {{ form.fecha_desde.errors }}
+                </div>
+                <div class="form-field">
+                    {{ form.fecha_hasta.label_tag }}
+                    {{ form.fecha_hasta }}
+                    {{ form.fecha_hasta.errors }}
+                </div>
+            </div>
+            <div class="form-actions start">
                 <button class="action-button secondary" type="submit" name="action" value="view">Ver en pagina</button>
                 <button class="action-button" type="submit" name="action" value="excel">Generar a Excel</button>
             </div>
+            {% if form.non_field_errors %}
+            <div class="form-alert">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
         </div>
     </form>
 </section>
 
 {% if selected_report %}
-<section class="content-card">
+<section id="resultado-reporte" class="content-card">
     <div class="section-heading">
         <div>
             <span class="section-kicker">Resultado</span>
@@ -68,5 +92,16 @@
         </table>
     </div>
 </section>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    if (new URLSearchParams(window.location.search).get("action") === "view") {
+        const result = document.getElementById("resultado-reporte");
+        if (result) {
+            result.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }
+});
+</script>
 {% endif %}
 {% endblock %}

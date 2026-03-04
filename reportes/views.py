@@ -28,6 +28,23 @@ def _slugify_filename(value):
     return "_".join(part for part in normalized.split("_") if part)
 
 
+def _apply_date_range(queryset, field_name, fecha_desde=None, fecha_hasta=None):
+    filters = {}
+    if fecha_desde:
+        filters[f"{field_name}__gte"] = fecha_desde
+    if fecha_hasta:
+        filters[f"{field_name}__lte"] = fecha_hasta
+    return queryset.filter(**filters) if filters else queryset
+
+
+def _filter_period_overlap(queryset, start_field, end_field, fecha_desde=None, fecha_hasta=None):
+    if fecha_desde:
+        queryset = queryset.filter(**{f"{end_field}__gte": fecha_desde})
+    if fecha_hasta:
+        queryset = queryset.filter(**{f"{start_field}__lte": fecha_hasta})
+    return queryset
+
+
 def _export_report_to_excel(report):
     from openpyxl import Workbook
     from openpyxl.styles import Font, PatternFill
@@ -69,12 +86,12 @@ def _export_report_to_excel(report):
     return response
 
 
-def _build_report(tipo_reporte):
+def _build_report(tipo_reporte, fecha_desde=None, fecha_hasta=None):
     hoy = timezone.localdate()
 
     if tipo_reporte == "choferes_registrados":
         registros = list(
-            Chofer.objects.all()
+            _apply_date_range(Chofer.objects.all(), "fecha_registro", fecha_desde, fecha_hasta)
             .order_by("nombre")
             .values("nombre", "cedula", "licencia", "metodo_pago_preferido", "estado")
         )
@@ -98,7 +115,12 @@ def _build_report(tipo_reporte):
 
     if tipo_reporte == "empleados_activos":
         registros = list(
-            Empleado.objects.filter(estado=Empleado.Estado.ACTIVO)
+            _apply_date_range(
+                Empleado.objects.filter(estado=Empleado.Estado.ACTIVO),
+                "fecha_ingreso",
+                fecha_desde,
+                fecha_hasta,
+            )
             .select_related("cargo", "cargo__departamento")
             .order_by("nombre")
         )
@@ -121,7 +143,12 @@ def _build_report(tipo_reporte):
         }
 
     if tipo_reporte == "choferes_por_estado":
-        registros = list(Chofer.objects.values("estado").annotate(total=Count("id")).order_by("estado"))
+        registros = list(
+            _apply_date_range(Chofer.objects.all(), "fecha_registro", fecha_desde, fecha_hasta)
+            .values("estado")
+            .annotate(total=Count("id"))
+            .order_by("estado")
+        )
         return {
             "title": "Choferes por estado",
             "description": "Resumen de choferes subcontratistas agrupados por estado operativo.",
@@ -133,7 +160,8 @@ def _build_report(tipo_reporte):
 
     if tipo_reporte == "choferes_por_categoria_licencia":
         registros = list(
-            Chofer.objects.values("categoria_licencia")
+            _apply_date_range(Chofer.objects.all(), "fecha_registro", fecha_desde, fecha_hasta)
+            .values("categoria_licencia")
             .annotate(total=Count("id"))
             .order_by("categoria_licencia")
         )
@@ -148,7 +176,8 @@ def _build_report(tipo_reporte):
 
     if tipo_reporte == "choferes_por_metodo_pago":
         registros = list(
-            Chofer.objects.values("metodo_pago_preferido")
+            _apply_date_range(Chofer.objects.all(), "fecha_registro", fecha_desde, fecha_hasta)
+            .values("metodo_pago_preferido")
             .annotate(total=Count("id"))
             .order_by("metodo_pago_preferido")
         )
@@ -162,7 +191,12 @@ def _build_report(tipo_reporte):
         }
 
     if tipo_reporte == "conduces_por_estado":
-        registros = list(Conduce.objects.values("estado").annotate(total=Count("id")).order_by("estado"))
+        registros = list(
+            _apply_date_range(Conduce.objects.all(), "fecha", fecha_desde, fecha_hasta)
+            .values("estado")
+            .annotate(total=Count("id"))
+            .order_by("estado")
+        )
         return {
             "title": "Conduces por estado",
             "description": "Resumen del flujo de conduces segun su estado actual.",
@@ -174,8 +208,14 @@ def _build_report(tipo_reporte):
 
     if tipo_reporte == "licencias_activas":
         registros = list(
-            Licencia.objects.select_related("empleado", "tipo")
-            .filter(fecha_inicio__lte=hoy, fecha_fin__gte=hoy)
+            _filter_period_overlap(
+                Licencia.objects.select_related("empleado", "tipo")
+                .filter(fecha_inicio__lte=hoy, fecha_fin__gte=hoy),
+                "fecha_inicio",
+                "fecha_fin",
+                fecha_desde,
+                fecha_hasta,
+            )
             .order_by("fecha_inicio")
         )
         return {
@@ -197,7 +237,12 @@ def _build_report(tipo_reporte):
         }
 
     if tipo_reporte == "empleados_por_estado":
-        registros = list(Empleado.objects.values("estado").annotate(total=Count("id")).order_by("estado"))
+        registros = list(
+            _apply_date_range(Empleado.objects.all(), "fecha_ingreso", fecha_desde, fecha_hasta)
+            .values("estado")
+            .annotate(total=Count("id"))
+            .order_by("estado")
+        )
         return {
             "title": "Empleados por estado",
             "description": "Clasificacion del personal interno por estado laboral.",
@@ -209,7 +254,8 @@ def _build_report(tipo_reporte):
 
     if tipo_reporte == "empleados_por_departamento":
         registros = list(
-            Empleado.objects.values("cargo__departamento__nombre")
+            _apply_date_range(Empleado.objects.all(), "fecha_ingreso", fecha_desde, fecha_hasta)
+            .values("cargo__departamento__nombre")
             .annotate(total=Count("id"))
             .order_by("cargo__departamento__nombre")
         )
@@ -223,7 +269,12 @@ def _build_report(tipo_reporte):
         }
 
     if tipo_reporte == "licencias_por_estado":
-        registros = list(Licencia.objects.values("estado").annotate(total=Count("id")).order_by("estado"))
+        registros = list(
+            _filter_period_overlap(Licencia.objects.all(), "fecha_inicio", "fecha_fin", fecha_desde, fecha_hasta)
+            .values("estado")
+            .annotate(total=Count("id"))
+            .order_by("estado")
+        )
         return {
             "title": "Licencias por estado",
             "description": "Resumen de licencias registradas segun su estado.",
@@ -253,8 +304,14 @@ def _build_report(tipo_reporte):
 
     if tipo_reporte == "vacaciones_activas":
         registros = list(
-            Vacacion.objects.select_related("empleado")
-            .filter(fecha_inicio__lte=hoy, fecha_fin__gte=hoy)
+            _filter_period_overlap(
+                Vacacion.objects.select_related("empleado")
+                .filter(fecha_inicio__lte=hoy, fecha_fin__gte=hoy),
+                "fecha_inicio",
+                "fecha_fin",
+                fecha_desde,
+                fecha_hasta,
+            )
             .order_by("fecha_inicio")
         )
         return {
@@ -275,7 +332,12 @@ def _build_report(tipo_reporte):
         }
 
     if tipo_reporte == "vacaciones_por_estado":
-        registros = list(Vacacion.objects.values("estado").annotate(total=Count("id")).order_by("estado"))
+        registros = list(
+            _filter_period_overlap(Vacacion.objects.all(), "fecha_inicio", "fecha_fin", fecha_desde, fecha_hasta)
+            .values("estado")
+            .annotate(total=Count("id"))
+            .order_by("estado")
+        )
         return {
             "title": "Vacaciones por estado",
             "description": "Resumen de vacaciones segun su estado de ejecucion.",
@@ -287,7 +349,8 @@ def _build_report(tipo_reporte):
 
     if tipo_reporte == "pagos_por_mes":
         registros = list(
-            Pago.objects.annotate(periodo=TruncMonth("fecha"))
+            _apply_date_range(Pago.objects.all(), "fecha", fecha_desde, fecha_hasta)
+            .annotate(periodo=TruncMonth("fecha"))
             .values("periodo")
             .annotate(total=Sum("monto"), cantidad=Count("id"))
             .order_by("-periodo")
@@ -304,12 +367,15 @@ def _build_report(tipo_reporte):
                 for item in registros
             ],
             "total_label": "Total general pagado",
-            "total_value": _format_currency(Pago.objects.aggregate(total=Sum("monto"))["total"] or 0),
+            "total_value": _format_currency(
+                _apply_date_range(Pago.objects.all(), "fecha", fecha_desde, fecha_hasta).aggregate(total=Sum("monto"))["total"] or 0
+            ),
         }
 
     if tipo_reporte == "pagos_por_metodo":
         registros = list(
-            Pago.objects.values("metodo")
+            _apply_date_range(Pago.objects.all(), "fecha", fecha_desde, fecha_hasta)
+            .values("metodo")
             .annotate(total_pagado=Sum("monto"), cantidad=Count("id"))
             .order_by("metodo")
         )
@@ -351,7 +417,8 @@ def _build_report(tipo_reporte):
 
     if tipo_reporte == "movimientos_por_tipo":
         registros = list(
-            MovimientoInventario.objects.values("tipo")
+            _apply_date_range(MovimientoInventario.objects.all(), "fecha", fecha_desde, fecha_hasta)
+            .values("tipo")
             .annotate(total=Count("id"), cantidad_total=Sum("cantidad"))
             .order_by("tipo")
         )
@@ -366,7 +433,8 @@ def _build_report(tipo_reporte):
 
     if tipo_reporte == "suministros_por_estado_pago":
         registros = list(
-            SuministroCombustible.objects.values("estado_pago")
+            _apply_date_range(SuministroCombustible.objects.all(), "fecha", fecha_desde, fecha_hasta)
+            .values("estado_pago")
             .annotate(total=Count("id"), monto_pendiente=Sum("saldo_pendiente"))
             .order_by("estado_pago")
         )
@@ -426,7 +494,12 @@ def _build_report(tipo_reporte):
 
     if tipo_reporte == "cuentas_pendientes":
         registros = list(
-            Cuenta.objects.filter(estado__in=[Cuenta.Estado.PENDIENTE, Cuenta.Estado.PARCIAL, Cuenta.Estado.VENCIDA])
+            _apply_date_range(
+                Cuenta.objects.filter(estado__in=[Cuenta.Estado.PENDIENTE, Cuenta.Estado.PARCIAL, Cuenta.Estado.VENCIDA]),
+                "fecha_vencimiento",
+                fecha_desde,
+                fecha_hasta,
+            )
             .order_by("fecha_vencimiento", "nombre")
         )
         return {
@@ -445,15 +518,21 @@ def _build_report(tipo_reporte):
             ],
             "total_label": "Saldo pendiente total",
             "total_value": _format_currency(
-                Cuenta.objects.filter(
-                    estado__in=[Cuenta.Estado.PENDIENTE, Cuenta.Estado.PARCIAL, Cuenta.Estado.VENCIDA]
+                _apply_date_range(
+                    Cuenta.objects.filter(
+                        estado__in=[Cuenta.Estado.PENDIENTE, Cuenta.Estado.PARCIAL, Cuenta.Estado.VENCIDA]
+                    ),
+                    "fecha_vencimiento",
+                    fecha_desde,
+                    fecha_hasta,
                 ).aggregate(total=Sum("saldo_pendiente"))["total"] or 0
             ),
         }
 
     if tipo_reporte == "cuentas_por_tipo":
         registros = list(
-            Cuenta.objects.values("tipo")
+            _apply_date_range(Cuenta.objects.all(), "fecha_emision", fecha_desde, fecha_hasta)
+            .values("tipo")
             .annotate(total=Count("id"), saldo=Sum("saldo_pendiente"))
             .order_by("tipo")
         )
@@ -468,7 +547,8 @@ def _build_report(tipo_reporte):
 
     if tipo_reporte == "cuentas_por_estado":
         registros = list(
-            Cuenta.objects.values("estado")
+            _apply_date_range(Cuenta.objects.all(), "fecha_emision", fecha_desde, fecha_hasta)
+            .values("estado")
             .annotate(total=Count("id"), saldo=Sum("saldo_pendiente"))
             .order_by("estado")
         )
@@ -483,7 +563,8 @@ def _build_report(tipo_reporte):
 
     if tipo_reporte == "abonos_por_metodo":
         registros = list(
-            AbonoCuenta.objects.values("metodo")
+            _apply_date_range(AbonoCuenta.objects.all(), "fecha", fecha_desde, fecha_hasta)
+            .values("metodo")
             .annotate(total=Count("id"), monto=Sum("monto"))
             .order_by("metodo")
         )
@@ -498,8 +579,13 @@ def _build_report(tipo_reporte):
 
     if tipo_reporte == "combustible_pendiente":
         registros = list(
-            SuministroCombustible.objects.select_related("chofer", "producto", "vehiculo")
-            .filter(saldo_pendiente__gt=0)
+            _apply_date_range(
+                SuministroCombustible.objects.select_related("chofer", "producto", "vehiculo")
+                .filter(saldo_pendiente__gt=0),
+                "fecha",
+                fecha_desde,
+                fecha_hasta,
+            )
             .order_by("-fecha", "-id")
         )
         return {
@@ -518,7 +604,12 @@ def _build_report(tipo_reporte):
             ],
             "total_label": "Saldo pendiente total",
             "total_value": _format_currency(
-                SuministroCombustible.objects.filter(saldo_pendiente__gt=0).aggregate(total=Sum("saldo_pendiente"))["total"] or 0
+                _apply_date_range(
+                    SuministroCombustible.objects.filter(saldo_pendiente__gt=0),
+                    "fecha",
+                    fecha_desde,
+                    fecha_hasta,
+                ).aggregate(total=Sum("saldo_pendiente"))["total"] or 0
             ),
         }
 
@@ -530,7 +621,11 @@ def lista_reportes(request):
     selected_report = None
 
     if form.is_valid():
-        selected_report = _build_report(form.cleaned_data["tipo_reporte"])
+        selected_report = _build_report(
+            form.cleaned_data["tipo_reporte"],
+            form.cleaned_data.get("fecha_desde"),
+            form.cleaned_data.get("fecha_hasta"),
+        )
         if request.GET.get("action") == "excel" and selected_report:
             return _export_report_to_excel(selected_report)
 

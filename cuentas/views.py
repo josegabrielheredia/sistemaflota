@@ -5,7 +5,7 @@ from .models import Cuenta
 
 
 def lista_cuentas(request):
-    cuentas = Cuenta.objects.all().order_by("fecha_vencimiento", "nombre")
+    cuentas = Cuenta.objects.select_related("chofer").order_by("fecha_vencimiento", "nombre")
     total_monto = cuentas.aggregate(total=Sum("monto"))["total"] or 0
     return render(
         request,

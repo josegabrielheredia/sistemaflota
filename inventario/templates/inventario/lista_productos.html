@@ -6,6 +6,7 @@
         <div>
             <span class="section-kicker">Inventario</span>
             <h2>Productos y existencias</h2>
+            <p>Consulta disponibilidad, nivel de reposicion y valor unitario desde una sola vista operativa.</p>
         </div>
     </div>
     <div class="table-responsive">
@@ -13,18 +14,41 @@
             <thead>
                 <tr>
                     <th>Producto</th>
-                    <th>Descripcion</th>
-                    <th>Cantidad</th>
-                    <th>Precio unitario</th>
+                    <th>Inventario</th>
+                    <th>Valor</th>
+                    <th>Estado</th>
                 </tr>
             </thead>
             <tbody>
                 {% for producto in productos %}
                 <tr>
-                    <td><strong>{{ producto.nombre }}</strong></td>
-                    <td class="table-note">{{ producto.descripcion|default:"Sin descripcion registrada" }}</td>
-                    <td>{{ producto.cantidad }}</td>
-                    <td>RD$ {{ producto.precio }}</td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-primary">{{ producto.nombre }}</span>
+                            <span class="table-secondary">{{ producto.descripcion|default:"Sin descripcion registrada" }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-primary">{{ producto.cantidad }} {{ producto.unidad_medida }}</span>
+                            <span class="table-secondary">Minimo sugerido {{ producto.stock_minimo }} {{ producto.unidad_medida }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-value">RD$ {{ producto.precio }}</span>
+                            <span class="table-secondary">{{ producto.get_categoria_display }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        {% if not producto.activo %}
+                        <span class="table-badge neutral">Inactivo</span>
+                        {% elif producto.cantidad <= producto.stock_minimo %}
+                        <span class="table-badge warning">Stock bajo</span>
+                        {% else %}
+                        <span class="table-badge success">Disponible</span>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% empty %}
                 <tr>

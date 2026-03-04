@@ -6,11 +6,12 @@
         <div>
             <span class="section-kicker">Registro</span>
             <h2>Formulario de chofer subcontratista</h2>
+            <p>Completa el expediente operativo del conductor, incluyendo licencia, forma de pago y notas internas.</p>
         </div>
         <a class="action-button secondary" href="{% url 'lista_choferes' %}">Volver al listado</a>
     </div>
 
-    <form method="post" class="site-form">
+    <form method="post" class="site-form form-shell">
         {% csrf_token %}
 
         {% if form.non_field_errors %}
@@ -23,6 +24,7 @@
             <div class="form-section-head">
                 <span class="section-kicker">Identificacion</span>
                 <h3>Datos del subcontratista</h3>
+                <p>Informacion basica para identificar y contactar al chofer contratado por servicio.</p>
             </div>
             <div class="form-grid two-columns">
                 <div class="form-field">
@@ -44,6 +46,7 @@
                     {{ form.estado.label_tag }}
                     {{ form.estado }}
                     {{ form.estado.errors }}
+                    <span class="form-field-hint">Usa este estado para controlar si el chofer esta disponible para nuevos servicios.</span>
                 </div>
                 <div class="form-field full-width">
                     {{ form.direccion.label_tag }}
@@ -57,6 +60,7 @@
             <div class="form-section-head">
                 <span class="section-kicker">Documentacion</span>
                 <h3>Licencia y vigencia</h3>
+                <p>Registra la documentacion habilitante para operar en viajes y servicios asignados.</p>
             </div>
             <div class="form-grid three-columns">
                 <div class="form-field">
@@ -81,17 +85,20 @@
             <div class="form-section-head">
                 <span class="section-kicker">Pago</span>
                 <h3>Datos para liquidacion por servicio</h3>
+                <p>Define la modalidad preferida y los datos bancarios o de beneficiario para el pago.</p>
             </div>
             <div class="form-grid two-columns">
                 <div class="form-field">
                     {{ form.metodo_pago_preferido.label_tag }}
                     {{ form.metodo_pago_preferido }}
                     {{ form.metodo_pago_preferido.errors }}
+                    <span class="form-field-hint">El metodo elegido condiciona los datos requeridos para la liquidacion.</span>
                 </div>
                 <div class="form-field">
                     {{ form.honorario_referencial.label_tag }}
                     {{ form.honorario_referencial }}
                     {{ form.honorario_referencial.errors }}
+                    <span class="form-field-hint">Monto estimado por viaje o servicio. Sirve como referencia operativa.</span>
                 </div>
                 <div class="form-field">
                     {{ form.banco.label_tag }}
@@ -115,6 +122,7 @@
             <div class="form-section-head">
                 <span class="section-kicker">Seguimiento</span>
                 <h3>Observaciones internas</h3>
+                <p>Usa este espacio para disponibilidad, condiciones particulares o notas de operacion.</p>
             </div>
             <div class="form-grid">
                 <div class="form-field full-width">

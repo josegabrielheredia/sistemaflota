@@ -6,6 +6,7 @@
         <div>
             <span class="section-kicker">Finanzas</span>
             <h2>Pagos a choferes</h2>
+            <p>Revisa cada desembolso por servicio con su soporte operativo, fecha y responsable del registro.</p>
         </div>
     </div>
     <div class="table-responsive">
@@ -13,18 +14,42 @@
             <thead>
                 <tr>
                     <th>Chofer</th>
-                    <th>Monto</th>
-                    <th>Fecha</th>
+                    <th>Desembolso</th>
                     <th>Metodo</th>
+                    <th>Registro</th>
                 </tr>
             </thead>
             <tbody>
                 {% for pago in pagos %}
                 <tr>
-                    <td><strong>{{ pago.chofer.nombre }}</strong></td>
-                    <td>RD$ {{ pago.monto }}</td>
-                    <td>{{ pago.fecha|date:"d/m/Y" }}</td>
-                    <td><span class="table-badge">{{ pago.metodo }}</span></td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-primary">{{ pago.chofer.nombre }}</span>
+                            <span class="table-secondary">
+                                {% if pago.conduce %}Conduce {{ pago.conduce.numero }}{% else %}Sin conduce vinculado{% endif %}
+                                {% if pago.referencia %} · Ref. {{ pago.referencia }}{% endif %}
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-value">RD$ {{ pago.monto }}</span>
+                            <span class="table-secondary">{{ pago.fecha|date:"d/m/Y" }}</span>
+                        </div>
+                    </td>
+                    <td><span class="table-badge info">{{ pago.get_metodo_display }}</span></td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-primary">{{ pago.registrado_por|default:"Sistema" }}</span>
+                            <span class="table-secondary">
+                                {% if pago.observaciones %}
+                                {{ pago.observaciones|truncatechars:55 }}
+                                {% else %}
+                                Sin observaciones registradas
+                                {% endif %}
+                            </span>
+                        </div>
+                    </td>
                 </tr>
                 {% empty %}
                 <tr>

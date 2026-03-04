@@ -6,6 +6,7 @@
         <div>
             <span class="section-kicker">Tesoreria</span>
             <h2>Cuentas por pagar y cobrar</h2>
+            <p>Centraliza compromisos, saldos pendientes y vencimientos con visibilidad del tercero o chofer asociado.</p>
         </div>
     </div>
     <div class="table-responsive">
@@ -13,18 +14,48 @@
             <thead>
                 <tr>
                     <th>Cuenta</th>
-                    <th>Tipo</th>
-                    <th>Monto</th>
+                    <th>Clasificacion</th>
+                    <th>Balance</th>
                     <th>Vencimiento</th>
                 </tr>
             </thead>
             <tbody>
                 {% for cuenta in cuentas %}
                 <tr>
-                    <td><strong>{{ cuenta.nombre }}</strong></td>
-                    <td><span class="table-badge">{{ cuenta.tipo }}</span></td>
-                    <td>RD$ {{ cuenta.monto }}</td>
-                    <td>{{ cuenta.fecha_vencimiento|date:"d/m/Y" }}</td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-primary">{{ cuenta.nombre }}</span>
+                            <span class="table-secondary">
+                                {% if cuenta.chofer %}
+                                Chofer: {{ cuenta.chofer.nombre }}
+                                {% elif cuenta.tercero %}
+                                Tercero: {{ cuenta.tercero }}
+                                {% else %}
+                                Sin tercero asignado
+                                {% endif %}
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-badge {% if cuenta.tipo == 'pagar' %}warning{% else %}info{% endif %}">{{ cuenta.get_tipo_display }}</span>
+                            <span class="table-secondary">{{ cuenta.categoria|default:"Sin categoria" }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-value">RD$ {{ cuenta.monto }}</span>
+                            <span class="table-secondary">Pendiente RD$ {{ cuenta.saldo_pendiente }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-primary">{{ cuenta.fecha_vencimiento|date:"d/m/Y" }}</span>
+                            <span class="table-badge {% if cuenta.estado == 'pagada' %}success{% elif cuenta.estado == 'vencida' %}danger{% elif cuenta.estado == 'parcial' %}warning{% else %}neutral{% endif %}">
+                                {{ cuenta.get_estado_display }}
+                            </span>
+                        </div>
+                    </td>
                 </tr>
                 {% empty %}
                 <tr>

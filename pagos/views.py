@@ -5,7 +5,7 @@ from .models import Pago
 
 
 def lista_pagos(request):
-    pagos = Pago.objects.select_related("chofer").order_by("-fecha", "-id")
+    pagos = Pago.objects.select_related("chofer", "conduce", "registrado_por").order_by("-fecha", "-id")
     total_pagado = pagos.aggregate(total=Sum("monto"))["total"] or 0
     return render(
         request,

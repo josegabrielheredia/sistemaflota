@@ -13,23 +13,38 @@
         <div>
             <span class="section-kicker">RRHH</span>
             <h2>Vacaciones programadas</h2>
+            <p>Visualiza descansos programados y periodos en curso para evitar cruces operativos en la agenda.</p>
         </div>
     </div>
     <div class="table-responsive">
         <table class="table site-table align-middle mb-0">
             <thead>
                 <tr>
-                    <th>Empleado</th>
-                    <th>Inicio</th>
-                    <th>Fin</th>
+                    <th>Colaborador</th>
+                    <th>Periodo</th>
+                    <th>Estado</th>
                 </tr>
             </thead>
             <tbody>
                 {% for vacacion in vacaciones %}
                 <tr>
-                    <td><strong>{{ vacacion.empleado.nombre }}</strong></td>
-                    <td>{{ vacacion.fecha_inicio|date:"d/m/Y" }}</td>
-                    <td>{{ vacacion.fecha_fin|date:"d/m/Y" }}</td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-primary">{{ vacacion.empleado.nombre }}</span>
+                            <span class="table-secondary">{{ vacacion.empleado.cargo.nombre|default:"Sin cargo" }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-primary">{{ vacacion.fecha_inicio|date:"d/m/Y" }}</span>
+                            <span class="table-secondary">Hasta {{ vacacion.fecha_fin|date:"d/m/Y" }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="table-badge {% if vacacion.estado == 'en_curso' %}success{% elif vacacion.estado == 'programada' %}info{% else %}neutral{% endif %}">
+                            {{ vacacion.get_estado_display }}
+                        </span>
+                    </td>
                 </tr>
                 {% empty %}
                 <tr>

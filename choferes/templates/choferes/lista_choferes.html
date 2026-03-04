@@ -6,6 +6,7 @@
         <div>
             <span class="section-kicker">Operaciones</span>
             <h2>Choferes subcontratistas</h2>
+            <p>Concentra documentacion, metodo de pago y vigencia de licencia para cada conductor operativo.</p>
         </div>
         <a class="action-button" href="{% url 'registrar_chofer' %}">Registrar chofer</a>
     </div>
@@ -14,18 +15,44 @@
             <thead>
                 <tr>
                     <th>Nombre</th>
-                    <th>Cedula</th>
                     <th>Licencia</th>
                     <th>Pago preferido</th>
+                    <th>Estado</th>
                 </tr>
             </thead>
             <tbody>
                 {% for chofer in choferes %}
                 <tr>
-                    <td><strong>{{ chofer.nombre }}</strong></td>
-                    <td>{{ chofer.cedula }}</td>
-                    <td><span class="table-badge">{{ chofer.licencia }}</span></td>
-                    <td>{{ chofer.get_metodo_pago_preferido_display|default:"No definido" }}</td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-primary">{{ chofer.nombre }}</span>
+                            <span class="table-secondary">{{ chofer.cedula }}{% if chofer.telefono %} &middot; {{ chofer.telefono }}{% endif %}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-badge info">{{ chofer.licencia }}</span>
+                            <span class="table-secondary">
+                                {{ chofer.categoria_licencia|default:"Sin categoria" }}
+                                {% if chofer.vencimiento_licencia %} &middot; vence {{ chofer.vencimiento_licencia|date:"d/m/Y" }}{% endif %}
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-primary">{{ chofer.get_metodo_pago_preferido_display|default:"No definido" }}</span>
+                            {% if chofer.honorario_referencial %}
+                            <span class="table-secondary">Honorario ref. RD$ {{ chofer.honorario_referencial }}</span>
+                            {% else %}
+                            <span class="table-secondary">Sin honorario de referencia</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="table-badge {% if chofer.estado == 'activo' %}success{% elif chofer.estado == 'suspendido' %}warning{% else %}neutral{% endif %}">
+                            {{ chofer.get_estado_display }}
+                        </span>
+                    </td>
                 </tr>
                 {% empty %}
                 <tr>

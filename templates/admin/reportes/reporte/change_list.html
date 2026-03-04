@@ -1,0 +1,121 @@
+{% extends "admin/base_site.html" %}
+
+{% block breadcrumbs %}
+<div class="admin-breadcrumbs-shell">
+    <a href="{% url 'admin:index' %}">Inicio</a>
+    <span>/</span>
+    <span>Reportes</span>
+</div>
+{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block content %}
+<section class="admin-dashboard-shell admin-dashboard-refined">
+    <section class="admin-hero admin-hero-refined">
+        <div class="admin-hero-copy">
+            <span class="admin-eyebrow">Analitica</span>
+            <h1>Generador de reportes</h1>
+            <p>Selecciona un reporte administrativo y decide si quieres verlo en pantalla o exportarlo a Excel.</p>
+        </div>
+    </section>
+
+    <section class="admin-section-card admin-workspace-card">
+        <form method="get" class="site-form form-shell narrow">
+            <div class="form-section form-toolbar">
+                <div class="form-section-head">
+                    <span class="section-kicker">Parametros</span>
+                    <h3>Configuracion del reporte</h3>
+                    <p>Elige el consolidado, define el periodo y decide si quieres visualizarlo o exportarlo.</p>
+                </div>
+                <div class="form-grid three-columns align-end">
+                    <div class="form-field">
+                        {{ form.tipo_reporte.label_tag }}
+                        {{ form.tipo_reporte }}
+                        {{ form.tipo_reporte.errors }}
+                        <span class="form-field-hint">La salida se genera con los mismos datos visibles dentro del sistema.</span>
+                    </div>
+                    <div class="form-field">
+                        {{ form.fecha_desde.label_tag }}
+                        {{ form.fecha_desde }}
+                        {{ form.fecha_desde.errors }}
+                    </div>
+                    <div class="form-field">
+                        {{ form.fecha_hasta.label_tag }}
+                        {{ form.fecha_hasta }}
+                        {{ form.fecha_hasta.errors }}
+                    </div>
+                </div>
+                <div class="form-actions start">
+                    <button class="action-button secondary" type="submit" name="action" value="view">Ver en pagina</button>
+                    <button class="action-button" type="submit" name="action" value="excel">Generar a Excel</button>
+                </div>
+                {% if form.non_field_errors %}
+                <div class="form-alert">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+            </div>
+        </form>
+    </section>
+
+    {% if selected_report %}
+    <section id="resultado-reporte" class="admin-section-card admin-workspace-card">
+        <div class="section-heading">
+            <div>
+                <span class="section-kicker">Resultado</span>
+                <h2>{{ selected_report.title }}</h2>
+                <p class="table-note">{{ selected_report.description }}</p>
+            </div>
+            <div class="report-total-card">
+                <span>{{ selected_report.total_label }}</span>
+                <strong>{{ selected_report.total_value }}</strong>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table site-table align-middle mb-0">
+                <thead>
+                    <tr>
+                        {% for column in selected_report.columns %}
+                        <th>{{ column }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in selected_report.rows %}
+                    <tr>
+                        {% for value in row %}
+                        <td>{{ value }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="{{ selected_report.columns|length }}">
+                            <div class="empty-state">
+                                <strong>Sin resultados para este reporte</strong>
+                                <p>No hay datos disponibles bajo la opcion seleccionada.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+</section>
+
+{% if selected_report %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    if (new URLSearchParams(window.location.search).get("action") === "view") {
+        const result = document.getElementById("resultado-reporte");
+        if (result) {
+            result.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

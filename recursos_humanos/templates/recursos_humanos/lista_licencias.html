@@ -13,25 +13,40 @@
         <div>
             <span class="section-kicker">RRHH</span>
             <h2>Licencias del personal</h2>
+            <p>Monitorea ausencias programadas, activas o cerradas con su rango de fechas y motivo principal.</p>
         </div>
     </div>
     <div class="table-responsive">
         <table class="table site-table align-middle mb-0">
             <thead>
                 <tr>
-                    <th>Empleado</th>
+                    <th>Colaborador</th>
                     <th>Tipo</th>
-                    <th>Inicio</th>
-                    <th>Fin</th>
+                    <th>Periodo</th>
+                    <th>Estado</th>
                 </tr>
             </thead>
             <tbody>
                 {% for licencia in licencias %}
                 <tr>
-                    <td><strong>{{ licencia.empleado.nombre }}</strong></td>
-                    <td><span class="table-badge">{{ licencia.tipo }}</span></td>
-                    <td>{{ licencia.fecha_inicio|date:"d/m/Y" }}</td>
-                    <td>{{ licencia.fecha_fin|date:"d/m/Y" }}</td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-primary">{{ licencia.empleado.nombre }}</span>
+                            <span class="table-secondary">{{ licencia.motivo|default:"Sin motivo especificado" }}</span>
+                        </div>
+                    </td>
+                    <td><span class="table-badge info">{{ licencia.tipo.nombre }}</span></td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-primary">{{ licencia.fecha_inicio|date:"d/m/Y" }}</span>
+                            <span class="table-secondary">Hasta {{ licencia.fecha_fin|date:"d/m/Y" }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="table-badge {% if licencia.estado == 'activa' %}success{% elif licencia.estado == 'programada' %}info{% elif licencia.estado == 'cancelada' %}danger{% else %}neutral{% endif %}">
+                            {{ licencia.get_estado_display }}
+                        </span>
+                    </td>
                 </tr>
                 {% empty %}
                 <tr>

@@ -13,23 +13,45 @@
         <div>
             <span class="section-kicker">RRHH</span>
             <h2>Capacitaciones</h2>
+            <p>Consolida el historial formativo del equipo con tema, proveedor y carga horaria invertida.</p>
         </div>
     </div>
     <div class="table-responsive">
         <table class="table site-table align-middle mb-0">
             <thead>
                 <tr>
-                    <th>Empleado</th>
-                    <th>Tema</th>
-                    <th>Fecha</th>
+                    <th>Colaborador</th>
+                    <th>Jornada</th>
+                    <th>Proveedor</th>
                 </tr>
             </thead>
             <tbody>
                 {% for capacitacion in capacitaciones %}
                 <tr>
-                    <td><strong>{{ capacitacion.empleado.nombre }}</strong></td>
-                    <td>{{ capacitacion.tema }}</td>
-                    <td>{{ capacitacion.fecha|date:"d/m/Y" }}</td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-primary">{{ capacitacion.empleado.nombre }}</span>
+                            <span class="table-secondary">{{ capacitacion.empleado.cargo.departamento.nombre|default:"Sin area definida" }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-primary">{{ capacitacion.tema }}</span>
+                            <span class="table-secondary">{{ capacitacion.fecha|date:"d/m/Y" }} &middot; {{ capacitacion.horas }} horas</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-primary">{{ capacitacion.proveedor|default:"Proveedor interno" }}</span>
+                            <span class="table-secondary">
+                                {% if capacitacion.observaciones %}
+                                {{ capacitacion.observaciones|truncatechars:55 }}
+                                {% else %}
+                                Sin observaciones registradas
+                                {% endif %}
+                            </span>
+                        </div>
+                    </td>
                 </tr>
                 {% empty %}
                 <tr>
