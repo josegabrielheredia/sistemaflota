@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 
 
@@ -16,6 +17,10 @@ class Vehiculo(models.Model):
     tipo = models.CharField(max_length=60, blank=True)
     capacidad = models.CharField(max_length=60, blank=True)
     color = models.CharField(max_length=30, blank=True)
+    es_propiedad_empresa = models.BooleanField(default=True)
+    dueno_nombre = models.CharField(max_length=150, blank=True)
+    dueno_documento = models.CharField(max_length=30, blank=True)
+    dueno_telefono = models.CharField(max_length=20, blank=True)
     estado = models.CharField(
         max_length=20,
         choices=Estado.choices,
@@ -31,6 +36,12 @@ class Vehiculo(models.Model):
         verbose_name = "Vehiculo"
         verbose_name_plural = "Vehiculos"
         ordering = ("placa",)
+
+    def clean(self):
+        if not self.es_propiedad_empresa and not self.dueno_nombre:
+            raise ValidationError(
+                {"dueno_nombre": "Indica el nombre del dueno cuando el vehiculo no es de la empresa."}
+            )
 
     def __str__(self):
         return self.placa

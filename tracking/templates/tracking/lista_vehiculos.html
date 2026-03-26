@@ -16,6 +16,7 @@
                     <th>Marca</th>
                     <th>Modelo</th>
                     <th>Estado</th>
+                    <th>Propiedad / Dueno</th>
                 </tr>
             </thead>
             <tbody>
@@ -25,10 +26,26 @@
                     <td>{{ vehiculo.marca|default:"N/D" }}</td>
                     <td>{{ vehiculo.modelo }}</td>
                     <td class="table-note">{{ vehiculo.get_estado_display }}</td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-primary">
+                                {% if vehiculo.es_propiedad_empresa %}Empresa{% else %}Alquilado{% endif %}
+                            </span>
+                            <span class="table-secondary">
+                                {% if vehiculo.es_propiedad_empresa %}
+                                N/A
+                                {% else %}
+                                {{ vehiculo.dueno_nombre|default:"Dueno no especificado" }}
+                                {% if vehiculo.dueno_documento %} &middot; {{ vehiculo.dueno_documento }}{% endif %}
+                                {% if vehiculo.dueno_telefono %} &middot; {{ vehiculo.dueno_telefono }}{% endif %}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="4">
+                    <td colspan="5">
                         <div class="empty-state">
                             <strong>No hay vehiculos registrados</strong>
                             <p>Las unidades de flota apareceran aqui una vez se registren en el sistema.</p>

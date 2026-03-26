@@ -495,18 +495,26 @@ def _build_report(tipo_reporte, fecha_desde=None, fecha_hasta=None):
         registros = list(
             Vehiculo.objects.filter(estado=Vehiculo.Estado.DISPONIBLE)
             .order_by("placa")
-            .values("placa", "marca", "modelo", "ultima_ubicacion")
+            .values(
+                "placa",
+                "marca",
+                "modelo",
+                "ultima_ubicacion",
+                "es_propiedad_empresa",
+                "dueno_nombre",
+            )
         )
         return {
             "title": "Vehiculos disponibles",
             "description": "Unidades actualmente disponibles para asignacion o servicio.",
-            "columns": ["Placa", "Marca", "Modelo", "Ultima ubicacion"],
+            "columns": ["Placa", "Marca", "Modelo", "Ultima ubicacion", "Propiedad / dueno"],
             "rows": [
                 [
                     item["placa"],
                     item["marca"] or "N/D",
                     item["modelo"],
                     item["ultima_ubicacion"] or "N/D",
+                    "Empresa" if item["es_propiedad_empresa"] else f"Alquilado - {item['dueno_nombre'] or 'Dueno no especificado'}",
                 ]
                 for item in registros
             ],

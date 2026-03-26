@@ -10,10 +10,11 @@ def lista_vehiculos(request):
         "tracking/lista_vehiculos.html",
         {
             "page_title": "Vehiculos",
-            "page_intro": "Registro y control operativo de vehiculos disponibles para servicio.",
+            "page_intro": "Registro y control operativo de vehiculos propios o alquilados para servicio.",
             "summary_cards": [
                 {"label": "Vehiculos registrados", "value": vehiculos.count(), "accent": "blue"},
-                {"label": "Vehiculos disponibles", "value": vehiculos.filter(estado=Vehiculo.Estado.DISPONIBLE).count(), "accent": "teal"},
+                {"label": "Vehiculos de la empresa", "value": vehiculos.filter(es_propiedad_empresa=True).count(), "accent": "teal"},
+                {"label": "Vehiculos alquilados", "value": vehiculos.filter(es_propiedad_empresa=False).count(), "accent": "amber"},
             ],
             "vehiculos": vehiculos,
         },

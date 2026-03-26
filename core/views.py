@@ -2,7 +2,6 @@ from django.db.models import Sum
 from django.shortcuts import render
 
 from choferes.models import Chofer
-from cuentas.models import Cuenta
 from inventario.models import Producto
 from pagos.models import Pago
 from recursos_humanos.models import Capacitacion, Empleado, Licencia, PagoEmpleado, Vacacion
@@ -37,12 +36,6 @@ def dashboard(request):
                 "text": "Registro de choferes subcontratistas, conduces y pagos por servicio.",
                 "metric": f"{Chofer.objects.count()} choferes y RD$ {total_pagos_choferes:,.2f} pagados",
                 "href": "/choferes/",
-            },
-            {
-                "title": "Cuentas",
-                "text": "Cuentas por pagar y por cobrar con foco en vencimientos.",
-                "metric": f"{Cuenta.objects.count()} cuentas en seguimiento",
-                "href": "/cuentas/",
             },
             {
                 "title": "Recursos humanos",
