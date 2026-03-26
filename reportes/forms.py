@@ -8,8 +8,8 @@ class GeneradorReporteForm(forms.Form):
             [
                 ("choferes_registrados", "Choferes subcontratistas registrados"),
                 ("choferes_por_estado", "Choferes por estado"),
-                ("choferes_por_categoria_licencia", "Choferes por categoria de licencia"),
-                ("choferes_por_metodo_pago", "Choferes por metodo de pago preferido"),
+                ("choferes_carta_buena_conducta", "Choferes por carta de buena conducta"),
+                ("choferes_rntt", "Choferes por cumplimiento de RNTT"),
                 ("conduces_por_estado", "Conduces por estado"),
             ],
         ),
@@ -19,6 +19,8 @@ class GeneradorReporteForm(forms.Form):
                 ("empleados_activos", "Empleados activos"),
                 ("empleados_por_estado", "Empleados por estado"),
                 ("empleados_por_departamento", "Empleados por departamento"),
+                ("pagos_empleados_por_mes", "Pagos de empleados por mes"),
+                ("pagos_empleados_por_metodo", "Pagos de empleados por metodo"),
                 ("licencias_activas", "Licencias activas"),
                 ("licencias_por_estado", "Licencias por estado"),
                 ("tipos_licencia_configurados", "Tipos de licencia configurados"),
@@ -48,7 +50,6 @@ class GeneradorReporteForm(forms.Form):
             [
                 ("vehiculos_disponibles", "Vehiculos disponibles"),
                 ("vehiculos_por_estado", "Vehiculos por estado"),
-                ("contenedores_por_estado", "Contenedores por estado"),
             ],
         ),
         (

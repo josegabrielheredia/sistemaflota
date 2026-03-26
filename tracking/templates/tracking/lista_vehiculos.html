@@ -5,7 +5,7 @@
     <div class="section-heading">
         <div>
             <span class="section-kicker">Flota</span>
-            <h2>Seguimiento de vehiculos</h2>
+            <h2>Registro de vehiculos</h2>
         </div>
     </div>
     <div class="table-responsive">
@@ -13,23 +13,25 @@
             <thead>
                 <tr>
                     <th>Placa</th>
+                    <th>Marca</th>
                     <th>Modelo</th>
-                    <th>Ultima ubicacion</th>
+                    <th>Estado</th>
                 </tr>
             </thead>
             <tbody>
                 {% for vehiculo in vehiculos %}
                 <tr>
                     <td><strong>{{ vehiculo.placa }}</strong></td>
+                    <td>{{ vehiculo.marca|default:"N/D" }}</td>
                     <td>{{ vehiculo.modelo }}</td>
-                    <td class="table-note">{{ vehiculo.ultima_ubicacion|default:"Sin ubicacion reportada" }}</td>
+                    <td class="table-note">{{ vehiculo.get_estado_display }}</td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="3">
+                    <td colspan="4">
                         <div class="empty-state">
-                            <strong>No hay vehiculos monitoreados</strong>
-                            <p>Las unidades de flota apareceran aqui con su ultima ubicacion conocida.</p>
+                            <strong>No hay vehiculos registrados</strong>
+                            <p>Las unidades de flota apareceran aqui una vez se registren en el sistema.</p>
                         </div>
                     </td>
                 </tr>

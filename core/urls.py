@@ -17,6 +17,7 @@ urlpatterns = [
     path("cuentas/", include("cuentas.urls")),
     path("recursos_humanos/", include("recursos_humanos.urls")),
     path("reportes/", include("reportes.urls")),
+    path("vehiculos/", include("tracking.urls")),
     path("tracking/", include("tracking.urls")),
     path("", dashboard, name="dashboard"),
 ]

@@ -83,7 +83,7 @@ INSTALLED_APPS = [
     "cuentas",
     "recursos_humanos",
     "reportes",
-    "tracking",
+    "tracking.apps.VehiculosConfig",
 ]
 
 MIDDLEWARE = [

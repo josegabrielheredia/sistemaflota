@@ -12,53 +12,51 @@
     <div class="section-heading">
         <div>
             <span class="section-kicker">RRHH</span>
-            <h2>Capacitaciones</h2>
-            <p>Consolida el historial formativo del equipo con tema, proveedor y carga horaria invertida.</p>
+            <h2>Pagos de empleados</h2>
+            <p>Pagos correspondientes exclusivamente al personal interno de la empresa.</p>
         </div>
     </div>
     <div class="table-responsive">
         <table class="table site-table align-middle mb-0">
             <thead>
                 <tr>
-                    <th>Colaborador</th>
-                    <th>Jornada</th>
-                    <th>Proveedor</th>
+                    <th>Empleado</th>
+                    <th>Departamento / Designacion</th>
+                    <th>Pago</th>
+                    <th>Metodo</th>
+                    <th>Referencia</th>
                 </tr>
             </thead>
             <tbody>
-                {% for capacitacion in capacitaciones %}
+                {% for pago in pagos %}
                 <tr>
                     <td>
                         <div class="table-stack">
-                            <span class="table-primary">{{ capacitacion.empleado.nombre }} {{ capacitacion.empleado.apellidos }}</span>
-                            <span class="table-secondary">{{ capacitacion.empleado.cargo.departamento.nombre|default:"Sin area definida" }}</span>
+                            <span class="table-primary">{{ pago.empleado.nombre }} {{ pago.empleado.apellidos }}</span>
+                            <span class="table-secondary">{{ pago.empleado.cedula }}</span>
                         </div>
                     </td>
                     <td>
                         <div class="table-stack">
-                            <span class="table-primary">{{ capacitacion.tema }}</span>
-                            <span class="table-secondary">{{ capacitacion.fecha|date:"d/m/Y" }} &middot; {{ capacitacion.horas }} horas</span>
+                            <span class="table-primary">{{ pago.empleado.cargo.departamento.nombre }}</span>
+                            <span class="table-secondary">{{ pago.empleado.cargo.nombre }}</span>
                         </div>
                     </td>
                     <td>
                         <div class="table-stack">
-                            <span class="table-primary">{{ capacitacion.proveedor|default:"Proveedor interno" }}</span>
-                            <span class="table-secondary">
-                                {% if capacitacion.observaciones %}
-                                {{ capacitacion.observaciones|truncatechars:55 }}
-                                {% else %}
-                                Sin observaciones registradas
-                                {% endif %}
-                            </span>
+                            <span class="table-value">RD$ {{ pago.monto }}</span>
+                            <span class="table-secondary">{{ pago.fecha|date:"d/m/Y" }}</span>
                         </div>
                     </td>
+                    <td><span class="table-badge info">{{ pago.get_metodo_display }}</span></td>
+                    <td>{{ pago.referencia|default:"-" }}</td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="3">
+                    <td colspan="5">
                         <div class="empty-state">
-                            <strong>Sin capacitaciones registradas</strong>
-                            <p>El historial formativo del personal aparecera en esta tabla.</p>
+                            <strong>No hay pagos de empleados registrados</strong>
+                            <p>Los pagos de nomina se mostraran aqui cuando sean cargados al sistema.</p>
                         </div>
                     </td>
                 </tr>

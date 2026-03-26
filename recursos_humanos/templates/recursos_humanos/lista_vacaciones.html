@@ -3,9 +3,9 @@
 {% block content %}
 <div class="subnav">
     <a class="subnav-link {% if rrhh_section == 'empleados' %}active{% endif %}" href="/recursos_humanos/empleados/">Empleados</a>
+    <a class="subnav-link {% if rrhh_section == 'pagos' %}active{% endif %}" href="/recursos_humanos/pagos/">Pagos</a>
     <a class="subnav-link {% if rrhh_section == 'licencias' %}active{% endif %}" href="/recursos_humanos/licencias/">Licencias</a>
     <a class="subnav-link {% if rrhh_section == 'vacaciones' %}active{% endif %}" href="/recursos_humanos/vacaciones/">Vacaciones</a>
-    <a class="subnav-link {% if rrhh_section == 'capacitaciones' %}active{% endif %}" href="/recursos_humanos/capacitaciones/">Capacitaciones</a>
 </div>
 
 <section class="content-card">
@@ -30,7 +30,7 @@
                 <tr>
                     <td>
                         <div class="table-stack">
-                            <span class="table-primary">{{ vacacion.empleado.nombre }}</span>
+                            <span class="table-primary">{{ vacacion.empleado.nombre }} {{ vacacion.empleado.apellidos }}</span>
                             <span class="table-secondary">{{ vacacion.empleado.cargo.nombre|default:"Sin cargo" }}</span>
                         </div>
                     </td>

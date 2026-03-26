@@ -28,8 +28,8 @@ class Vehiculo(models.Model):
     observaciones = models.TextField(blank=True)
 
     class Meta:
-        verbose_name = "Vehículo"
-        verbose_name_plural = "Vehículos"
+        verbose_name = "Vehiculo"
+        verbose_name_plural = "Vehiculos"
         ordering = ("placa",)
 
     def __str__(self):

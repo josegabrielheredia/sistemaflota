@@ -17,6 +17,8 @@ class Chofer(models.Model):
     telefono = models.CharField(max_length=20, blank=True)
     direccion = models.CharField(max_length=255, blank=True)
     licencia = models.CharField(max_length=50)
+    carta_buena_conducta = models.BooleanField(default=False)
+    rntt = models.BooleanField(default=False)
     categoria_licencia = models.CharField(max_length=50, blank=True)
     vencimiento_licencia = models.DateField(null=True, blank=True)
     estado = models.CharField(

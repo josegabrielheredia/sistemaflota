@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+from .forms import ChoferSubcontratistaForm
 from .models import Chofer, Conduce
 
 
@@ -10,23 +11,30 @@ class ConduceInline(admin.TabularInline):
 
 @admin.register(Chofer)
 class ChoferAdmin(admin.ModelAdmin):
+    form = ChoferSubcontratistaForm
     list_display = (
         "nombre",
         "cedula",
         "licencia",
-        "categoria_licencia",
-        "metodo_pago_preferido",
-        "honorario_referencial",
-        "estado",
+        "carta_buena_conducta",
+        "rntt",
     )
-    search_fields = ("nombre", "cedula", "licencia", "telefono", "banco", "titular_cuenta", "numero_cuenta")
+    search_fields = ("nombre", "cedula", "licencia")
     fieldsets = (
-        ("Identificacion", {"fields": ("nombre", "cedula", "telefono", "direccion")}),
-        ("Documentacion", {"fields": ("licencia", "categoria_licencia", "vencimiento_licencia", "estado")}),
-        ("Pago por servicio", {"fields": ("metodo_pago_preferido", "banco", "titular_cuenta", "numero_cuenta", "honorario_referencial")}),
-        ("Seguimiento", {"fields": ("fecha_registro", "observaciones")}),
+        (
+            "Identificacion",
+            {
+                "fields": (
+                    "nombres",
+                    "apellidos",
+                    "cedula",
+                    "licencia",
+                    "carta_buena_conducta",
+                    "rntt",
+                )
+            },
+        ),
     )
-    readonly_fields = ("fecha_registro",)
     inlines = [ConduceInline]
 
 

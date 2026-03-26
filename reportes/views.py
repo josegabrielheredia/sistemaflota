@@ -8,8 +8,8 @@ from choferes.models import Chofer, Conduce
 from cuentas.models import AbonoCuenta, Cuenta
 from inventario.models import MovimientoInventario, Producto, SuministroCombustible
 from pagos.models import Pago
-from recursos_humanos.models import Empleado, Licencia, TipoLicencia, Vacacion
-from tracking.models import Contenedor, Vehiculo
+from recursos_humanos.models import Empleado, Licencia, PagoEmpleado, TipoLicencia, Vacacion
+from tracking.models import Vehiculo
 
 from .forms import GeneradorReporteForm
 
@@ -93,19 +93,19 @@ def _build_report(tipo_reporte, fecha_desde=None, fecha_hasta=None):
         registros = list(
             _apply_date_range(Chofer.objects.all(), "fecha_registro", fecha_desde, fecha_hasta)
             .order_by("nombre")
-            .values("nombre", "cedula", "licencia", "metodo_pago_preferido", "estado")
+            .values("nombre", "cedula", "licencia", "carta_buena_conducta", "rntt")
         )
         return {
             "title": "Choferes subcontratistas registrados",
             "description": "Listado general de choferes subcontratistas disponibles en el sistema.",
-            "columns": ["Nombre", "Cedula", "Licencia", "Pago preferido", "Estado"],
+            "columns": ["Nombre", "Cedula", "Licencia", "Carta buena conducta", "RNTT"],
             "rows": [
                 [
                     item["nombre"],
                     item["cedula"],
                     item["licencia"],
-                    item["metodo_pago_preferido"] or "No definido",
-                    item["estado"],
+                    "Si" if item["carta_buena_conducta"] else "No",
+                    "Si" if item["rntt"] else "No",
                 ]
                 for item in registros
             ],
@@ -130,7 +130,7 @@ def _build_report(tipo_reporte, fecha_desde=None, fecha_hasta=None):
             "columns": ["Nombre", "Cedula", "Cargo", "Departamento", "Ingreso"],
             "rows": [
                 [
-                    item.nombre,
+                    f"{item.nombre} {item.apellidos}".strip(),
                     item.cedula,
                     item.cargo.nombre,
                     item.cargo.departamento.nombre,
@@ -158,34 +158,34 @@ def _build_report(tipo_reporte, fecha_desde=None, fecha_hasta=None):
             "total_value": sum(item["total"] for item in registros),
         }
 
-    if tipo_reporte == "choferes_por_categoria_licencia":
+    if tipo_reporte == "choferes_carta_buena_conducta":
         registros = list(
             _apply_date_range(Chofer.objects.all(), "fecha_registro", fecha_desde, fecha_hasta)
-            .values("categoria_licencia")
+            .values("carta_buena_conducta")
             .annotate(total=Count("id"))
-            .order_by("categoria_licencia")
+            .order_by("carta_buena_conducta")
         )
         return {
-            "title": "Choferes por categoria de licencia",
-            "description": "Distribucion de choferes segun la categoria de licencia registrada.",
-            "columns": ["Categoria de licencia", "Cantidad"],
-            "rows": [[item["categoria_licencia"] or "Sin categoria", item["total"]] for item in registros],
+            "title": "Choferes por carta de buena conducta",
+            "description": "Resumen de choferes segun disponibilidad de carta de buena conducta.",
+            "columns": ["Carta de buena conducta", "Cantidad"],
+            "rows": [["Si" if item["carta_buena_conducta"] else "No", item["total"]] for item in registros],
             "total_label": "Choferes contabilizados",
             "total_value": sum(item["total"] for item in registros),
         }
 
-    if tipo_reporte == "choferes_por_metodo_pago":
+    if tipo_reporte == "choferes_rntt":
         registros = list(
             _apply_date_range(Chofer.objects.all(), "fecha_registro", fecha_desde, fecha_hasta)
-            .values("metodo_pago_preferido")
+            .values("rntt")
             .annotate(total=Count("id"))
-            .order_by("metodo_pago_preferido")
+            .order_by("rntt")
         )
         return {
-            "title": "Choferes por metodo de pago preferido",
-            "description": "Clasificacion de subcontratistas por metodo de pago configurado.",
-            "columns": ["Metodo de pago", "Cantidad"],
-            "rows": [[_choice_label(Chofer.MetodoPago.choices, item["metodo_pago_preferido"]), item["total"]] for item in registros],
+            "title": "Choferes por cumplimiento de RNTT",
+            "description": "Resumen de choferes segun cumplimiento del requisito interno RNTT.",
+            "columns": ["RNTT", "Cantidad"],
+            "rows": [["Si" if item["rntt"] else "No", item["total"]] for item in registros],
             "total_label": "Choferes contabilizados",
             "total_value": sum(item["total"] for item in registros),
         }
@@ -224,7 +224,7 @@ def _build_report(tipo_reporte, fecha_desde=None, fecha_hasta=None):
             "columns": ["Empleado", "Tipo", "Inicio", "Fin", "Estado"],
             "rows": [
                 [
-                    item.empleado.nombre,
+                    f"{item.empleado.nombre} {item.empleado.apellidos}".strip(),
                     item.tipo.nombre,
                     item.fecha_inicio.strftime("%d/%m/%Y"),
                     item.fecha_fin.strftime("%d/%m/%Y"),
@@ -320,7 +320,7 @@ def _build_report(tipo_reporte, fecha_desde=None, fecha_hasta=None):
             "columns": ["Empleado", "Inicio", "Fin", "Estado"],
             "rows": [
                 [
-                    item.empleado.nombre,
+                    f"{item.empleado.nombre} {item.empleado.apellidos}".strip(),
                     item.fecha_inicio.strftime("%d/%m/%Y"),
                     item.fecha_fin.strftime("%d/%m/%Y"),
                     item.get_estado_display(),
@@ -345,6 +345,50 @@ def _build_report(tipo_reporte, fecha_desde=None, fecha_hasta=None):
             "rows": [[_choice_label(Vacacion.Estado.choices, item["estado"]), item["total"]] for item in registros],
             "total_label": "Vacaciones contabilizadas",
             "total_value": sum(item["total"] for item in registros),
+        }
+
+    if tipo_reporte == "pagos_empleados_por_mes":
+        registros = list(
+            _apply_date_range(PagoEmpleado.objects.all(), "fecha", fecha_desde, fecha_hasta)
+            .annotate(periodo=TruncMonth("fecha"))
+            .values("periodo")
+            .annotate(total=Sum("monto"), cantidad=Count("id"))
+            .order_by("-periodo")
+        )
+        return {
+            "title": "Pagos de empleados por mes",
+            "description": "Consolidado mensual de pagos realizados al personal interno.",
+            "columns": ["Mes", "Total pagado"],
+            "rows": [
+                [
+                    item["periodo"].strftime("%m/%Y") if item["periodo"] else "Sin fecha",
+                    _format_currency(item["total"] or 0),
+                ]
+                for item in registros
+            ],
+            "total_label": "Total general pagado",
+            "total_value": _format_currency(
+                _apply_date_range(PagoEmpleado.objects.all(), "fecha", fecha_desde, fecha_hasta).aggregate(total=Sum("monto"))["total"] or 0
+            ),
+        }
+
+    if tipo_reporte == "pagos_empleados_por_metodo":
+        registros = list(
+            _apply_date_range(PagoEmpleado.objects.all(), "fecha", fecha_desde, fecha_hasta)
+            .values("metodo")
+            .annotate(total_pagado=Sum("monto"), cantidad=Count("id"))
+            .order_by("metodo")
+        )
+        return {
+            "title": "Pagos de empleados por metodo",
+            "description": "Resumen de pagos de empleados por metodo de desembolso.",
+            "columns": ["Metodo", "Cantidad", "Total pagado"],
+            "rows": [
+                [_choice_label(PagoEmpleado.Metodo.choices, item["metodo"]), item["cantidad"], _format_currency(item["total_pagado"] or 0)]
+                for item in registros
+            ],
+            "total_label": "Total general pagado",
+            "total_value": _format_currency(sum((item["total_pagado"] or 0) for item in registros)),
         }
 
     if tipo_reporte == "pagos_por_mes":
@@ -478,17 +522,6 @@ def _build_report(tipo_reporte, fecha_desde=None, fecha_hasta=None):
             "columns": ["Estado", "Cantidad"],
             "rows": [[_choice_label(Vehiculo.Estado.choices, item["estado"]), item["total"]] for item in registros],
             "total_label": "Vehiculos contabilizados",
-            "total_value": sum(item["total"] for item in registros),
-        }
-
-    if tipo_reporte == "contenedores_por_estado":
-        registros = list(Contenedor.objects.values("estado").annotate(total=Count("id")).order_by("estado"))
-        return {
-            "title": "Contenedores por estado",
-            "description": "Resumen de contenedores agrupados por estado operativo.",
-            "columns": ["Estado", "Cantidad"],
-            "rows": [[_choice_label(Contenedor.Estado.choices, item["estado"]), item["total"]] for item in registros],
-            "total_label": "Contenedores contabilizados",
             "total_value": sum(item["total"] for item in registros),
         }
 
@@ -637,7 +670,8 @@ def lista_reportes(request):
             "page_intro": "Genera reportes operativos, financieros y de personal desde un solo panel.",
             "summary_cards": [
                 {"label": "Choferes", "value": Chofer.objects.count(), "accent": "blue"},
-                {"label": "Pagos", "value": Pago.objects.count(), "accent": "green"},
+                {"label": "Pagos choferes", "value": Pago.objects.count(), "accent": "green"},
+                {"label": "Pagos empleados", "value": PagoEmpleado.objects.count(), "accent": "teal"},
                 {"label": "Cuentas pendientes", "value": Cuenta.objects.filter(estado__in=[Cuenta.Estado.PENDIENTE, Cuenta.Estado.PARCIAL, Cuenta.Estado.VENCIDA]).count(), "accent": "amber"},
             ],
             "form": form,

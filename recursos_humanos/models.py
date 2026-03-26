@@ -40,6 +40,7 @@ class Empleado(models.Model):
         SUSPENDIDO = "suspendido", "Suspendido"
 
     nombre = models.CharField(max_length=150)
+    apellidos = models.CharField(max_length=150, blank=True)
     cedula = models.CharField(max_length=20, unique=True)
     fecha_ingreso = models.DateField()
     cargo = models.ForeignKey(
@@ -64,7 +65,7 @@ class Empleado(models.Model):
         ordering = ("nombre",)
 
     def __str__(self):
-        return self.nombre
+        return f"{self.nombre} {self.apellidos}".strip()
 
 
 class TipoLicencia(models.Model):
@@ -166,3 +167,29 @@ class Capacitacion(models.Model):
 
     def __str__(self):
         return f"{self.tema} - {self.empleado.nombre}"
+
+
+class PagoEmpleado(models.Model):
+    class Metodo(models.TextChoices):
+        EFECTIVO = "efectivo", "Efectivo"
+        CHEQUE = "cheque", "Cheque"
+        TRANSFERENCIA = "transferencia", "Transferencia"
+
+    empleado = models.ForeignKey(
+        Empleado,
+        on_delete=models.CASCADE,
+        related_name="pagos",
+    )
+    fecha = models.DateField()
+    monto = models.DecimalField(max_digits=12, decimal_places=2)
+    metodo = models.CharField(max_length=20, choices=Metodo.choices)
+    referencia = models.CharField(max_length=100, blank=True)
+    observaciones = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = "Pago de empleado"
+        verbose_name_plural = "Pagos de empleados"
+        ordering = ("-fecha", "-id")
+
+    def __str__(self):
+        return f"{self.empleado} - {self.monto}"

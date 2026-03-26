@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Capacitacion, Cargo, Departamento, Empleado, Licencia, TipoLicencia, Vacacion
+from .models import Capacitacion, Cargo, Departamento, Empleado, Licencia, PagoEmpleado, TipoLicencia, Vacacion
 
 
 @admin.register(Departamento)
@@ -32,9 +32,21 @@ class CapacitacionInline(admin.TabularInline):
 
 @admin.register(Empleado)
 class EmpleadoAdmin(admin.ModelAdmin):
-    list_display = ("nombre", "cedula", "cargo", "fecha_ingreso", "estado")
-    search_fields = ("nombre", "cedula", "telefono", "correo")
+    list_display = ("nombre_completo", "cedula", "departamento", "designacion", "estado")
+    search_fields = ("nombre", "apellidos", "cedula", "telefono", "correo")
     inlines = [LicenciaInline, VacacionInline, CapacitacionInline]
+
+    @admin.display(description="Empleado")
+    def nombre_completo(self, obj):
+        return f"{obj.nombre} {obj.apellidos}".strip()
+
+    @admin.display(description="Departamento")
+    def departamento(self, obj):
+        return obj.cargo.departamento.nombre
+
+    @admin.display(description="Designacion")
+    def designacion(self, obj):
+        return obj.cargo.nombre
 
 
 @admin.register(TipoLicencia)
@@ -59,3 +71,9 @@ class VacacionAdmin(admin.ModelAdmin):
 class CapacitacionAdmin(admin.ModelAdmin):
     list_display = ("empleado", "tema", "fecha", "proveedor", "horas")
     search_fields = ("empleado__nombre", "tema", "proveedor")
+
+
+@admin.register(PagoEmpleado)
+class PagoEmpleadoAdmin(admin.ModelAdmin):
+    list_display = ("empleado", "fecha", "monto", "metodo", "referencia")
+    search_fields = ("empleado__nombre", "empleado__apellidos", "empleado__cedula", "referencia")

@@ -1,12 +1,17 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<div class="subnav">
+    <a class="subnav-link active" href="/choferes/">Choferes</a>
+    <a class="subnav-link" href="/choferes/pagos/">Pagos a choferes</a>
+</div>
+
 <section class="content-card">
     <div class="section-heading">
         <div>
-            <span class="section-kicker">Operaciones</span>
+            <span class="section-kicker">Gestion de choferes</span>
             <h2>Choferes subcontratistas</h2>
-            <p>Concentra documentacion, metodo de pago y vigencia de licencia para cada conductor operativo.</p>
+            <p>Registro operativo de choferes contratados por servicio.</p>
         </div>
         <a class="action-button" href="{% url 'registrar_chofer' %}">Registrar chofer</a>
     </div>
@@ -14,52 +19,36 @@
         <table class="table site-table align-middle mb-0">
             <thead>
                 <tr>
-                    <th>Nombre</th>
+                    <th>Chofer</th>
+                    <th>Cedula</th>
                     <th>Licencia</th>
-                    <th>Pago preferido</th>
-                    <th>Estado</th>
+                    <th>Carta de buena conducta</th>
+                    <th>RNTT</th>
                 </tr>
             </thead>
             <tbody>
                 {% for chofer in choferes %}
                 <tr>
+                    <td><span class="table-primary">{{ chofer.nombre }}</span></td>
+                    <td>{{ chofer.cedula }}</td>
+                    <td><span class="table-badge info">{{ chofer.licencia }}</span></td>
                     <td>
-                        <div class="table-stack">
-                            <span class="table-primary">{{ chofer.nombre }}</span>
-                            <span class="table-secondary">{{ chofer.cedula }}{% if chofer.telefono %} &middot; {{ chofer.telefono }}{% endif %}</span>
-                        </div>
+                        <span class="table-badge {% if chofer.carta_buena_conducta %}success{% else %}warning{% endif %}">
+                            {% if chofer.carta_buena_conducta %}Si{% else %}No{% endif %}
+                        </span>
                     </td>
                     <td>
-                        <div class="table-stack">
-                            <span class="table-badge info">{{ chofer.licencia }}</span>
-                            <span class="table-secondary">
-                                {{ chofer.categoria_licencia|default:"Sin categoria" }}
-                                {% if chofer.vencimiento_licencia %} &middot; vence {{ chofer.vencimiento_licencia|date:"d/m/Y" }}{% endif %}
-                            </span>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="table-stack">
-                            <span class="table-primary">{{ chofer.get_metodo_pago_preferido_display|default:"No definido" }}</span>
-                            {% if chofer.honorario_referencial %}
-                            <span class="table-secondary">Honorario ref. RD$ {{ chofer.honorario_referencial }}</span>
-                            {% else %}
-                            <span class="table-secondary">Sin honorario de referencia</span>
-                            {% endif %}
-                        </div>
-                    </td>
-                    <td>
-                        <span class="table-badge {% if chofer.estado == 'activo' %}success{% elif chofer.estado == 'suspendido' %}warning{% else %}neutral{% endif %}">
-                            {{ chofer.get_estado_display }}
+                        <span class="table-badge {% if chofer.rntt %}success{% else %}warning{% endif %}">
+                            {% if chofer.rntt %}Si{% else %}No{% endif %}
                         </span>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="4">
+                    <td colspan="5">
                         <div class="empty-state">
                             <strong>No hay choferes subcontratistas registrados</strong>
-                            <p>Registra cada chofer con su formulario operativo para documentar viajes, conduces y pagos por servicio.</p>
+                            <p>Registra cada chofer para luego asociarle conduces y pagos por servicio.</p>
                         </div>
                     </td>
                 </tr>

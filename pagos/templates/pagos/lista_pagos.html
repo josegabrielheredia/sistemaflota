@@ -1,12 +1,17 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<div class="subnav">
+    <a class="subnav-link" href="/choferes/">Choferes</a>
+    <a class="subnav-link active" href="/choferes/pagos/">Pagos a choferes</a>
+</div>
+
 <section class="content-card">
     <div class="section-heading">
         <div>
-            <span class="section-kicker">Finanzas</span>
+            <span class="section-kicker">Gestion de choferes</span>
             <h2>Pagos a choferes</h2>
-            <p>Revisa cada desembolso por servicio con su soporte operativo, fecha y responsable del registro.</p>
+            <p>Desembolsos por servicio vinculados al conduce y al chofer subcontratista.</p>
         </div>
     </div>
     <div class="table-responsive">
@@ -27,7 +32,7 @@
                             <span class="table-primary">{{ pago.chofer.nombre }}</span>
                             <span class="table-secondary">
                                 {% if pago.conduce %}Conduce {{ pago.conduce.numero }}{% else %}Sin conduce vinculado{% endif %}
-                                {% if pago.referencia %} · Ref. {{ pago.referencia }}{% endif %}
+                                {% if pago.referencia %} &middot; Ref. {{ pago.referencia }}{% endif %}
                             </span>
                         </div>
                     </td>
@@ -55,8 +60,8 @@
                 <tr>
                     <td colspan="4">
                         <div class="empty-state">
-                            <strong>No hay pagos registrados</strong>
-                            <p>Los movimientos financieros apareceran aqui una vez sean cargados al sistema.</p>
+                            <strong>No hay pagos de choferes registrados</strong>
+                            <p>Los pagos por servicio apareceran aqui una vez sean cargados al sistema.</p>
                         </div>
                     </td>
                 </tr>

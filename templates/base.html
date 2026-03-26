@@ -594,6 +594,28 @@
             color-scheme: light;
         }
 
+        .inline-radio-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            min-height: 48px;
+        }
+
+        .inline-radio-list li {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .inline-radio-list input[type="radio"] {
+            width: 1rem;
+            height: 1rem;
+            margin: 0;
+        }
+
         .form-field-hint {
             color: var(--muted);
             font-size: 0.8rem;
@@ -918,11 +940,10 @@
         <nav class="sidebar-nav">
             <a class="sidebar-link {% if request.path == '/' %}active{% endif %}" href="/"><span>Dashboard</span><small>Resumen ejecutivo</small></a>
             <a class="sidebar-link {% if '/inventario/' in request.path %}active{% endif %}" href="/inventario/"><span>Inventario</span><small>Productos y stock</small></a>
-            <a class="sidebar-link {% if '/choferes/' in request.path %}active{% endif %}" href="/choferes/"><span>Choferes</span><small>Subcontratistas y conduces</small></a>
-            <a class="sidebar-link {% if '/pagos/' in request.path %}active{% endif %}" href="/pagos/"><span>Pagos</span><small>Control de desembolsos</small></a>
+            <a class="sidebar-link {% if '/choferes/' in request.path or '/pagos/' in request.path %}active{% endif %}" href="/choferes/"><span>Gestion de choferes</span><small>Registro, conduces y pagos</small></a>
             <a class="sidebar-link {% if '/cuentas/' in request.path %}active{% endif %}" href="/cuentas/"><span>Cuentas</span><small>Flujo financiero</small></a>
-            <a class="sidebar-link {% if '/recursos_humanos/' in request.path %}active{% endif %}" href="/recursos_humanos/empleados/"><span>RRHH</span><small>Talento y desarrollo</small></a>
-            <a class="sidebar-link {% if '/tracking/' in request.path %}active{% endif %}" href="/tracking/"><span>Tracking</span><small>Trazabilidad vehicular</small></a>
+            <a class="sidebar-link {% if '/recursos_humanos/' in request.path %}active{% endif %}" href="/recursos_humanos/empleados/"><span>RRHH</span><small>Empleados, pagos, licencias y vacaciones</small></a>
+            <a class="sidebar-link {% if '/vehiculos/' in request.path or '/tracking/' in request.path %}active{% endif %}" href="/vehiculos/"><span>Vehiculos</span><small>Registro de flota</small></a>
             <a class="sidebar-link {% if '/reportes/' in request.path %}active{% endif %}" href="/reportes/"><span>Reportes</span><small>Documentacion y novedades</small></a>
         </nav>
 
@@ -940,11 +961,10 @@
                     <div class="mobile-nav-links">
                         <a class="mobile-link" href="/">Dashboard</a>
                         <a class="mobile-link" href="/inventario/">Inventario</a>
-                        <a class="mobile-link" href="/choferes/">Choferes</a>
-                        <a class="mobile-link" href="/pagos/">Pagos</a>
+                        <a class="mobile-link" href="/choferes/">Gestion de choferes</a>
                         <a class="mobile-link" href="/cuentas/">Cuentas</a>
                         <a class="mobile-link" href="/recursos_humanos/empleados/">RRHH</a>
-                        <a class="mobile-link" href="/tracking/">Tracking</a>
+                        <a class="mobile-link" href="/vehiculos/">Vehiculos</a>
                         <a class="mobile-link" href="/reportes/">Reportes</a>
                     </div>
                 </div>

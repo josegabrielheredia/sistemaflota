@@ -9,11 +9,11 @@ def lista_vehiculos(request):
         request,
         "tracking/lista_vehiculos.html",
         {
-            "page_title": "Tracking",
-            "page_intro": "Monitoreo de ubicacion y trazabilidad operativa de la flota.",
+            "page_title": "Vehiculos",
+            "page_intro": "Registro y control operativo de vehiculos disponibles para servicio.",
             "summary_cards": [
-                {"label": "Vehiculos monitoreados", "value": vehiculos.count(), "accent": "blue"},
-                {"label": "Con ubicacion reportada", "value": vehiculos.exclude(ultima_ubicacion="").count(), "accent": "teal"},
+                {"label": "Vehiculos registrados", "value": vehiculos.count(), "accent": "blue"},
+                {"label": "Vehiculos disponibles", "value": vehiculos.filter(estado=Vehiculo.Estado.DISPONIBLE).count(), "accent": "teal"},
             ],
             "vehiculos": vehiculos,
         },

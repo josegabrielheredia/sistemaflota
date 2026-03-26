@@ -5,14 +5,15 @@ from choferes.models import Chofer
 from cuentas.models import Cuenta
 from inventario.models import Producto
 from pagos.models import Pago
-from recursos_humanos.models import Capacitacion, Empleado, Licencia, Vacacion
+from recursos_humanos.models import Capacitacion, Empleado, Licencia, PagoEmpleado, Vacacion
 from reportes.models import Reporte
 from tracking.models import Vehiculo
 
 
 def dashboard(request):
     stock_total = Producto.objects.aggregate(total=Sum("cantidad"))["total"] or 0
-    total_pagos = Pago.objects.aggregate(total=Sum("monto"))["total"] or 0
+    total_pagos_choferes = Pago.objects.aggregate(total=Sum("monto"))["total"] or 0
+    total_pagos_empleados = PagoEmpleado.objects.aggregate(total=Sum("monto"))["total"] or 0
 
     context = {
         "page_title": "Centro de control",
@@ -21,7 +22,8 @@ def dashboard(request):
             {"label": "Productos", "value": Producto.objects.count(), "accent": "teal"},
             {"label": "Unidades en stock", "value": stock_total, "accent": "amber"},
             {"label": "Choferes subcontratistas", "value": Chofer.objects.count(), "accent": "blue"},
-            {"label": "Pagos registrados", "value": f"RD$ {total_pagos:,.2f}", "accent": "green"},
+            {"label": "Pagos choferes", "value": f"RD$ {total_pagos_choferes:,.2f}", "accent": "green"},
+            {"label": "Pagos empleados", "value": f"RD$ {total_pagos_empleados:,.2f}", "accent": "amber"},
         ],
         "module_cards": [
             {
@@ -31,16 +33,10 @@ def dashboard(request):
                 "href": "/inventario/",
             },
             {
-                "title": "Choferes",
-                "text": "Registro de choferes subcontratistas contratados por viaje o servicio.",
-                "metric": f"{Chofer.objects.count()} choferes subcontratistas",
+                "title": "Gestion de choferes",
+                "text": "Registro de choferes subcontratistas, conduces y pagos por servicio.",
+                "metric": f"{Chofer.objects.count()} choferes y RD$ {total_pagos_choferes:,.2f} pagados",
                 "href": "/choferes/",
-            },
-            {
-                "title": "Pagos",
-                "text": "Seguimiento financiero de pagos por servicio vinculados a conduces.",
-                "metric": f"RD$ {total_pagos:,.2f} procesados",
-                "href": "/pagos/",
             },
             {
                 "title": "Cuentas",
@@ -50,15 +46,15 @@ def dashboard(request):
             },
             {
                 "title": "Recursos humanos",
-                "text": "Empleados, licencias, vacaciones y capacitaciones.",
-                "metric": f"{Empleado.objects.count()} empleados",
+                "text": "Empleados, pagos de empleados, licencias y vacaciones.",
+                "metric": f"{Empleado.objects.count()} empleados y RD$ {total_pagos_empleados:,.2f} en pagos",
                 "href": "/recursos_humanos/empleados/",
             },
             {
-                "title": "Tracking",
-                "text": "Ubicacion operativa y trazabilidad de la flota.",
-                "metric": f"{Vehiculo.objects.count()} vehiculos monitoreados",
-                "href": "/tracking/",
+                "title": "Vehiculos",
+                "text": "Registro y control operativo de la flota vehicular.",
+                "metric": f"{Vehiculo.objects.count()} vehiculos registrados",
+                "href": "/vehiculos/",
             },
             {
                 "title": "Reportes",

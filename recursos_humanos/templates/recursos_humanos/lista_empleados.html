@@ -3,9 +3,9 @@
 {% block content %}
 <div class="subnav">
     <a class="subnav-link {% if rrhh_section == 'empleados' %}active{% endif %}" href="/recursos_humanos/empleados/">Empleados</a>
+    <a class="subnav-link {% if rrhh_section == 'pagos' %}active{% endif %}" href="/recursos_humanos/pagos/">Pagos</a>
     <a class="subnav-link {% if rrhh_section == 'licencias' %}active{% endif %}" href="/recursos_humanos/licencias/">Licencias</a>
     <a class="subnav-link {% if rrhh_section == 'vacaciones' %}active{% endif %}" href="/recursos_humanos/vacaciones/">Vacaciones</a>
-    <a class="subnav-link {% if rrhh_section == 'capacitaciones' %}active{% endif %}" href="/recursos_humanos/capacitaciones/">Capacitaciones</a>
 </div>
 
 <section class="content-card">
@@ -20,40 +20,21 @@
         <table class="table site-table align-middle mb-0">
             <thead>
                 <tr>
-                    <th>Empleado</th>
-                    <th>Cargo y area</th>
-                    <th>Contacto</th>
-                    <th>Estado</th>
-                    <th>Ingreso</th>
+                    <th>Nombres</th>
+                    <th>Apellidos</th>
+                    <th>Cedula</th>
+                    <th>Departamento</th>
+                    <th>Designacion</th>
                 </tr>
             </thead>
             <tbody>
                 {% for empleado in empleados %}
                 <tr>
-                    <td>
-                        <div class="table-stack">
-                            <span class="table-primary">{{ empleado.nombre }}</span>
-                            <span class="table-secondary">{{ empleado.cedula }}</span>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="table-stack">
-                            <span class="table-primary">{{ empleado.cargo.nombre }}</span>
-                            <span class="table-secondary">{{ empleado.cargo.departamento.nombre }}</span>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="table-stack">
-                            <span class="table-primary">{{ empleado.telefono|default:"Sin telefono" }}</span>
-                            <span class="table-secondary">{{ empleado.correo|default:"Sin correo registrado" }}</span>
-                        </div>
-                    </td>
-                    <td>
-                        <span class="table-badge {% if empleado.estado == 'activo' %}success{% elif empleado.estado == 'suspendido' %}warning{% else %}neutral{% endif %}">
-                            {{ empleado.get_estado_display }}
-                        </span>
-                    </td>
-                    <td>{{ empleado.fecha_ingreso|date:"d/m/Y" }}</td>
+                    <td>{{ empleado.nombre }}</td>
+                    <td>{{ empleado.apellidos }}</td>
+                    <td>{{ empleado.cedula }}</td>
+                    <td>{{ empleado.cargo.departamento.nombre }}</td>
+                    <td>{{ empleado.cargo.nombre }}</td>
                 </tr>
                 {% empty %}
                 <tr>
