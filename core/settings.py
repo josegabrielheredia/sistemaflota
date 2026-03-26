@@ -80,7 +80,6 @@ INSTALLED_APPS = [
     "inventario",
     "choferes",
     "pagos",
-    "cuentas",
     "recursos_humanos",
     "reportes",
     "tracking.apps.VehiculosConfig",

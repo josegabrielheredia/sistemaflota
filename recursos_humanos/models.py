@@ -140,7 +140,7 @@ class Vacacion(models.Model):
     observaciones = models.TextField(blank=True)
 
     class Meta:
-        verbose_name = "Vacación"
+        verbose_name = "Vacaci\u00f3n"
         verbose_name_plural = "Vacaciones"
         ordering = ("-fecha_inicio",)
 
@@ -161,7 +161,7 @@ class Capacitacion(models.Model):
     observaciones = models.TextField(blank=True)
 
     class Meta:
-        verbose_name = "Capacitación"
+        verbose_name = "Capacitaci\u00f3n"
         verbose_name_plural = "Capacitaciones"
         ordering = ("-fecha",)
 

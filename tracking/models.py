@@ -13,7 +13,7 @@ class Vehiculo(models.Model):
     codigo_interno = models.CharField(max_length=30, blank=True)
     marca = models.CharField(max_length=80, blank=True)
     modelo = models.CharField(max_length=80)
-    anio = models.PositiveIntegerField(null=True, blank=True)
+    anio = models.PositiveIntegerField("A\u00f1o", null=True, blank=True)
     tipo = models.CharField(max_length=60, blank=True)
     capacidad = models.CharField(max_length=60, blank=True)
     color = models.CharField(max_length=30, blank=True)

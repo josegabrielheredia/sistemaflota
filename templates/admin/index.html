@@ -23,10 +23,18 @@
         <div class="sidebar-section-title">Navegacion</div>
         <nav class="sidebar-nav" role="tablist" aria-label="Modulos administrativos">
             {% for app in app_list %}
-            <button class="sidebar-link admin-sidebar-tab{% if forloop.first %} active{% endif %}" type="button" data-target="admin-dashboard-{{ forloop.counter }}" role="tab" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">
+            {% if app.app_label != "pagos" and app.app_label != "cuentas" %}
+            <button class="sidebar-link admin-sidebar-tab{% if forloop.first %} active{% endif %}" type="button" data-target="admin-dashboard-{{ forloop.counter }}" data-app-label="{{ app.app_label }}" role="tab" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">
                 <span>{{ app.name }}</span>
-                <small>{{ app.models|length }} opciones administrativas</small>
+                <small>
+                    {% if app.app_label == "choferes" %}
+                    {{ app.models|length|add:"1" }} opciones administrativas
+                    {% else %}
+                    {{ app.models|length }} opciones administrativas
+                    {% endif %}
+                </small>
             </button>
+            {% endif %}
             {% endfor %}
         </nav>
 
@@ -36,7 +44,8 @@
     <div class="main-panel admin-dashboard-main">
         <main class="main-content">
             {% for app in app_list %}
-            <section id="admin-dashboard-{{ forloop.counter }}" class="admin-dashboard-view{% if forloop.first %} is-active{% endif %}" role="tabpanel">
+            {% if app.app_label != "pagos" and app.app_label != "cuentas" %}
+            <section id="admin-dashboard-{{ forloop.counter }}" class="admin-dashboard-view{% if forloop.first %} is-active{% endif %}" data-app-label="{{ app.app_label }}" role="tabpanel">
                 <section class="page-topbar">
                     <div>
                         <span class="eyebrow">Modulo</span>
@@ -49,11 +58,29 @@
                     <div class="section-heading">
                         <div>
                             <span class="section-kicker">Registros</span>
-                            <h2>{{ app.models|length }} opciones administrativas</h2>
+                            <h2>
+                                {% if app.app_label == "choferes" %}
+                                {{ app.models|length|add:"1" }} opciones administrativas
+                                {% else %}
+                                {{ app.models|length }} opciones administrativas
+                                {% endif %}
+                            </h2>
                         </div>
                     </div>
                     <div class="module-list">
                         {% for model in app.models %}
+                        {% if app.app_label == "choferes" and model.object_name == "Conduce" %}
+                        <div class="module-list-row admin-module-row">
+                            <div class="module-list-copy">
+                                <h3><a class="admin-module-link" href="{% url 'admin:pagos_pago_changelist' %}">Pago a choferes subcontratistas</a></h3>
+                                <p>Gestion y mantenimiento de registros.</p>
+                            </div>
+                            <div class="module-list-meta">
+                                <a class="module-list-link admin-module-action" href="{% url 'admin:pagos_pago_changelist' %}">Abrir</a>
+                                <a class="module-list-metric admin-module-action-pill" href="{% url 'admin:pagos_pago_add' %}">Nuevo</a>
+                            </div>
+                        </div>
+                        {% endif %}
                         <div class="module-list-row admin-module-row">
                             <div class="module-list-copy">
                                 {% if model.admin_url %}
@@ -81,6 +108,7 @@
                     </div>
                 </section>
             </section>
+            {% endif %}
             {% endfor %}
         </main>
     </div>
@@ -90,6 +118,8 @@
 document.addEventListener("DOMContentLoaded", function () {
     const tabs = Array.from(document.querySelectorAll(".admin-sidebar-tab"));
     const panels = Array.from(document.querySelectorAll(".admin-dashboard-view"));
+    const sidebarNav = document.querySelector(".sidebar-nav");
+    const mainContent = document.querySelector(".main-content");
 
     function activate(targetId) {
         tabs.forEach((tab) => {
@@ -108,6 +138,18 @@ document.addEventListener("DOMContentLoaded", function () {
             activate(tab.dataset.target);
         });
     });
+
+    const trackingTab = sidebarNav?.querySelector('[data-app-label="tracking"]');
+    const reportesTab = sidebarNav?.querySelector('[data-app-label="reportes"]');
+    if (trackingTab && reportesTab) {
+        sidebarNav.insertBefore(trackingTab, reportesTab);
+    }
+
+    const trackingPanel = mainContent?.querySelector('.admin-dashboard-view[data-app-label="tracking"]');
+    const reportesPanel = mainContent?.querySelector('.admin-dashboard-view[data-app-label="reportes"]');
+    if (trackingPanel && reportesPanel) {
+        mainContent.insertBefore(trackingPanel, reportesPanel);
+    }
 });
 </script>
 {% endblock %}

@@ -5,7 +5,6 @@ from django.shortcuts import render
 from django.utils import timezone
 
 from choferes.models import Chofer, Conduce
-from cuentas.models import AbonoCuenta, Cuenta
 from inventario.models import MovimientoInventario, Producto, SuministroCombustible
 from pagos.models import Pago
 from recursos_humanos.models import Empleado, Licencia, PagoEmpleado, TipoLicencia, Vacacion
@@ -533,91 +532,6 @@ def _build_report(tipo_reporte, fecha_desde=None, fecha_hasta=None):
             "total_value": sum(item["total"] for item in registros),
         }
 
-    if tipo_reporte == "cuentas_pendientes":
-        registros = list(
-            _apply_date_range(
-                Cuenta.objects.filter(estado__in=[Cuenta.Estado.PENDIENTE, Cuenta.Estado.PARCIAL, Cuenta.Estado.VENCIDA]),
-                "fecha_vencimiento",
-                fecha_desde,
-                fecha_hasta,
-            )
-            .order_by("fecha_vencimiento", "nombre")
-        )
-        return {
-            "title": "Cuentas pendientes",
-            "description": "Obligaciones y saldos que aun requieren seguimiento financiero.",
-            "columns": ["Concepto", "Tipo", "Vencimiento", "Saldo pendiente", "Estado"],
-            "rows": [
-                [
-                    item.nombre,
-                    item.get_tipo_display(),
-                    item.fecha_vencimiento.strftime("%d/%m/%Y"),
-                    _format_currency(item.saldo_pendiente),
-                    item.get_estado_display(),
-                ]
-                for item in registros
-            ],
-            "total_label": "Saldo pendiente total",
-            "total_value": _format_currency(
-                _apply_date_range(
-                    Cuenta.objects.filter(
-                        estado__in=[Cuenta.Estado.PENDIENTE, Cuenta.Estado.PARCIAL, Cuenta.Estado.VENCIDA]
-                    ),
-                    "fecha_vencimiento",
-                    fecha_desde,
-                    fecha_hasta,
-                ).aggregate(total=Sum("saldo_pendiente"))["total"] or 0
-            ),
-        }
-
-    if tipo_reporte == "cuentas_por_tipo":
-        registros = list(
-            _apply_date_range(Cuenta.objects.all(), "fecha_emision", fecha_desde, fecha_hasta)
-            .values("tipo")
-            .annotate(total=Count("id"), saldo=Sum("saldo_pendiente"))
-            .order_by("tipo")
-        )
-        return {
-            "title": "Cuentas por tipo",
-            "description": "Resumen de cuentas clasificadas en por pagar y por cobrar.",
-            "columns": ["Tipo", "Cantidad", "Saldo pendiente"],
-            "rows": [[_choice_label(Cuenta.Tipo.choices, item["tipo"]), item["total"], _format_currency(item["saldo"] or 0)] for item in registros],
-            "total_label": "Cuentas contabilizadas",
-            "total_value": sum(item["total"] for item in registros),
-        }
-
-    if tipo_reporte == "cuentas_por_estado":
-        registros = list(
-            _apply_date_range(Cuenta.objects.all(), "fecha_emision", fecha_desde, fecha_hasta)
-            .values("estado")
-            .annotate(total=Count("id"), saldo=Sum("saldo_pendiente"))
-            .order_by("estado")
-        )
-        return {
-            "title": "Cuentas por estado",
-            "description": "Resumen de cuentas segun su estado financiero.",
-            "columns": ["Estado", "Cantidad", "Saldo pendiente"],
-            "rows": [[_choice_label(Cuenta.Estado.choices, item["estado"]), item["total"], _format_currency(item["saldo"] or 0)] for item in registros],
-            "total_label": "Cuentas contabilizadas",
-            "total_value": sum(item["total"] for item in registros),
-        }
-
-    if tipo_reporte == "abonos_por_metodo":
-        registros = list(
-            _apply_date_range(AbonoCuenta.objects.all(), "fecha", fecha_desde, fecha_hasta)
-            .values("metodo")
-            .annotate(total=Count("id"), monto=Sum("monto"))
-            .order_by("metodo")
-        )
-        return {
-            "title": "Abonos de cuenta por metodo",
-            "description": "Resumen de abonos realizados segun el metodo utilizado.",
-            "columns": ["Metodo", "Cantidad", "Monto"],
-            "rows": [[_choice_label(AbonoCuenta.Metodo.choices, item["metodo"]), item["total"], _format_currency(item["monto"] or 0)] for item in registros],
-            "total_label": "Total abonado",
-            "total_value": _format_currency(sum((item["monto"] or 0) for item in registros)),
-        }
-
     if tipo_reporte == "combustible_pendiente":
         registros = list(
             _apply_date_range(
@@ -680,7 +594,7 @@ def lista_reportes(request):
                 {"label": "Choferes", "value": Chofer.objects.count(), "accent": "blue"},
                 {"label": "Pagos choferes", "value": Pago.objects.count(), "accent": "green"},
                 {"label": "Pagos empleados", "value": PagoEmpleado.objects.count(), "accent": "teal"},
-                {"label": "Cuentas pendientes", "value": Cuenta.objects.filter(estado__in=[Cuenta.Estado.PENDIENTE, Cuenta.Estado.PARCIAL, Cuenta.Estado.VENCIDA]).count(), "accent": "amber"},
+                {"label": "Vehiculos", "value": Vehiculo.objects.count(), "accent": "amber"},
             ],
             "form": form,
             "selected_report": selected_report,

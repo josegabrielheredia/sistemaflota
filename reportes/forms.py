@@ -52,15 +52,6 @@ class GeneradorReporteForm(forms.Form):
                 ("vehiculos_por_estado", "Vehiculos por estado"),
             ],
         ),
-        (
-            "Cuentas",
-            [
-                ("cuentas_pendientes", "Cuentas pendientes"),
-                ("cuentas_por_tipo", "Cuentas por tipo"),
-                ("cuentas_por_estado", "Cuentas por estado"),
-                ("abonos_por_metodo", "Abonos de cuenta por metodo"),
-            ],
-        ),
     ]
 
     tipo_reporte = forms.ChoiceField(
