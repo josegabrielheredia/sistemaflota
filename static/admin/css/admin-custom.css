@@ -187,13 +187,17 @@ body.dashboard .sidebar-footer {
 
 body.dashboard .main-panel {
     min-width: 0;
-    padding: 5.4rem 0 1.4rem 1.4rem;
+    width: 100%;
+    max-width: none;
+    padding: 5.4rem 0.55rem 1.4rem 1.4rem;
 }
 
 body.dashboard .main-content {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 1.25rem;
+    width: 100%;
+    max-width: none;
 }
 
 body.dashboard .page-topbar {
@@ -433,6 +437,16 @@ body.dashboard .admin-dashboard-view.is-active {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 1.25rem;
+    width: 100%;
+    max-width: none;
+    justify-items: stretch;
+}
+
+body.dashboard .page-topbar,
+body.dashboard .content-card,
+body.dashboard .module-list-row {
+    width: 100%;
+    max-width: none;
 }
 
 body.dashboard .admin-module-row {
