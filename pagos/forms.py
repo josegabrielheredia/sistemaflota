@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from django import forms
 from django.db.models import Sum
@@ -15,9 +15,17 @@ class PagoAdminForm(forms.ModelForm):
         max_digits=12,
         initial=Decimal("0.00"),
     )
-    liquidar_avances_pendientes = forms.BooleanField(
-        label="Marcar avances pendientes como pagados",
+    descontar_avance_pendiente = forms.BooleanField(
+        label="Desea cobrarle el avance pendiente",
         required=False,
+    )
+    monto_neto_a_pagar = forms.DecimalField(
+        label="Monto neto a pagar (RD$)",
+        required=False,
+        disabled=True,
+        decimal_places=2,
+        max_digits=12,
+        initial=Decimal("0.00"),
     )
 
     class Meta:
@@ -26,18 +34,41 @@ class PagoAdminForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["monto"].label = "Monto a pagar (RD$)"
         saldo = self._saldo_pendiente_actual()
         self.fields["saldo_avance_pendiente"].initial = saldo
+        self.fields["descontar_avance_pendiente"].initial = saldo > 0
+
+        monto_actual = self._monto_actual()
+        aplicar_descuento = self._descontar_avance_actual()
+        descuento_estimado = min(monto_actual, saldo) if aplicar_descuento else Decimal("0.00")
+        monto_neto = monto_actual - descuento_estimado
+        self.fields["monto_neto_a_pagar"].initial = max(monto_neto, Decimal("0.00"))
+
+        if self.instance and self.instance.pk:
+            self.fields["descontar_avance_pendiente"].disabled = True
+            self.fields["descontar_avance_pendiente"].help_text = (
+                "Este control aplica solo al registrar un nuevo pago."
+            )
+            return
 
         if saldo <= 0:
-            self.fields["liquidar_avances_pendientes"].disabled = True
-            self.fields["liquidar_avances_pendientes"].help_text = (
+            self.fields["descontar_avance_pendiente"].disabled = True
+            self.fields["descontar_avance_pendiente"].help_text = (
                 "Este chofer no tiene avances pendientes."
             )
         else:
-            self.fields["liquidar_avances_pendientes"].help_text = (
-                "Si marcas esta opcion, los avances pendientes del chofer se cerraran."
+            self.fields["descontar_avance_pendiente"].help_text = (
+                "Si marcas esta opcion, se descuenta del pago hasta cubrir el saldo pendiente."
             )
+
+    def _to_decimal(self, raw_value):
+        if raw_value in (None, ""):
+            return Decimal("0.00")
+        try:
+            return Decimal(str(raw_value).replace(",", ""))
+        except (InvalidOperation, TypeError):
+            return Decimal("0.00")
 
     def _chofer_id_actual(self):
         if self.is_bound:
@@ -60,3 +91,16 @@ class PagoAdminForm(forms.ModelForm):
             or Decimal("0.00")
         )
         return total
+
+    def _monto_actual(self):
+        if self.is_bound:
+            return self._to_decimal(self.data.get("monto"))
+        if self.instance and self.instance.pk:
+            return self.instance.monto or Decimal("0.00")
+        return self._to_decimal(self.initial.get("monto"))
+
+    def _descontar_avance_actual(self):
+        if self.is_bound:
+            value = self.data.get("descontar_avance_pendiente")
+            return value in (True, "True", "true", "1", 1, "on")
+        return bool(self.fields["descontar_avance_pendiente"].initial)

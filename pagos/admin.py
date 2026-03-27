@@ -39,6 +39,7 @@ class PagoAdmin(admin.ModelAdmin):
         "conduce",
         "monto_rd",
         "descuento_avances_rd",
+        "monto_neto_rd",
         "liquido_avances",
         "metodo",
         "fecha",
@@ -56,6 +57,13 @@ class PagoAdmin(admin.ModelAdmin):
     @admin.display(description="Descuento avances")
     def descuento_avances_rd(self, obj):
         return f"RD$ {obj.descuento_avances:,.2f}"
+
+    @admin.display(description="Neto pagado")
+    def monto_neto_rd(self, obj):
+        neto = (obj.monto or Decimal("0.00")) - (obj.descuento_avances or Decimal("0.00"))
+        if neto < 0:
+            neto = Decimal("0.00")
+        return f"RD$ {neto:,.2f}"
 
     def get_urls(self):
         custom_urls = [
@@ -84,26 +92,60 @@ class PagoAdmin(admin.ModelAdmin):
         if not obj.registrado_por_id and request.user.is_authenticated:
             obj.registrado_por = request.user
 
-        aplicar_liquidacion = (
-            not change and form.cleaned_data.get("liquidar_avances_pendientes", False)
+        aplicar_descuento = (
+            not change and form.cleaned_data.get("descontar_avance_pendiente", False)
         )
         super().save_model(request, obj, form, change)
 
-        if aplicar_liquidacion and obj.chofer_id:
-            avances_pendientes = AvanceChofer.objects.filter(
+        if aplicar_descuento and obj.chofer_id and obj.monto > 0:
+            descuento_aplicado = self._aplicar_descuento_avances(
                 chofer_id=obj.chofer_id,
-                estado=AvanceChofer.Estado.PENDIENTE,
-                saldo_pendiente__gt=0,
+                monto_pago=obj.monto,
             )
-            total_saldo = (
-                avances_pendientes.aggregate(total=Sum("saldo_pendiente"))["total"]
-                or Decimal("0.00")
-            )
-            if total_saldo > 0:
-                avances_pendientes.update(
-                    saldo_pendiente=Decimal("0.00"),
-                    estado=AvanceChofer.Estado.LIQUIDADO,
+            if descuento_aplicado > 0:
+                saldo_restante = (
+                    AvanceChofer.objects.filter(
+                        chofer_id=obj.chofer_id,
+                        estado=AvanceChofer.Estado.PENDIENTE,
+                        saldo_pendiente__gt=0,
+                    ).aggregate(total=Sum("saldo_pendiente"))["total"]
+                    or Decimal("0.00")
                 )
-                obj.descuento_avances = total_saldo
-                obj.liquido_avances = True
+                obj.descuento_avances = descuento_aplicado
+                obj.liquido_avances = saldo_restante <= 0
                 obj.save(update_fields=["descuento_avances", "liquido_avances"])
+
+    def _aplicar_descuento_avances(self, chofer_id, monto_pago):
+        monto_restante = monto_pago or Decimal("0.00")
+        if monto_restante <= 0:
+            return Decimal("0.00")
+
+        total_descontado = Decimal("0.00")
+        avances = AvanceChofer.objects.filter(
+            chofer_id=chofer_id,
+            estado=AvanceChofer.Estado.PENDIENTE,
+            saldo_pendiente__gt=0,
+        ).order_by("fecha", "id")
+
+        for avance in avances:
+            if monto_restante <= 0:
+                break
+
+            saldo = avance.saldo_pendiente or Decimal("0.00")
+            if saldo <= 0:
+                continue
+
+            descuento = min(saldo, monto_restante)
+            nuevo_saldo = saldo - descuento
+            avance.saldo_pendiente = nuevo_saldo
+            avance.estado = (
+                AvanceChofer.Estado.LIQUIDADO
+                if nuevo_saldo <= 0
+                else AvanceChofer.Estado.PENDIENTE
+            )
+            avance.save(update_fields=["saldo_pendiente", "estado"])
+
+            total_descontado += descuento
+            monto_restante -= descuento
+
+        return total_descontado
