@@ -1,7 +1,6 @@
 from django.contrib import admin
-from django.urls import include, path
-
-from .views import dashboard
+from django.urls import path
+from django.views.generic import RedirectView
 
 admin.site.site_header = "Transporte Victorino Diroche, S.R.L."
 admin.site.site_title = "Panel administrativo"
@@ -11,12 +10,9 @@ admin.site.site_url = None
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("inventario/", include("inventario.urls")),
-    path("choferes/", include("choferes.urls")),
-    path("pagos/", include("pagos.urls")),
-    path("recursos_humanos/", include("recursos_humanos.urls")),
-    path("reportes/", include("reportes.urls")),
-    path("vehiculos/", include("tracking.urls")),
-    path("tracking/", include("tracking.urls")),
-    path("", dashboard, name="dashboard"),
+    path(
+        "",
+        RedirectView.as_view(url="/admin/login/?next=/admin/", permanent=False),
+        name="home",
+    ),
 ]
