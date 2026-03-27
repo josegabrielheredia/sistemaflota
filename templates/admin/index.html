@@ -28,7 +28,7 @@
                 <span>{{ app.name }}</span>
                 <small>
                     {% if app.app_label == "choferes" %}
-                    {{ app.models|length|add:"1" }} opciones administrativas
+                    {{ app.models|length|add:"2" }} opciones administrativas
                     {% else %}
                     {{ app.models|length }} opciones administrativas
                     {% endif %}
@@ -60,7 +60,7 @@
                             <span class="section-kicker">Registros</span>
                             <h2>
                                 {% if app.app_label == "choferes" %}
-                                {{ app.models|length|add:"1" }} opciones administrativas
+                                {{ app.models|length|add:"2" }} opciones administrativas
                                 {% else %}
                                 {{ app.models|length }} opciones administrativas
                                 {% endif %}
@@ -70,6 +70,16 @@
                     <div class="module-list">
                         {% for model in app.models %}
                         {% if app.app_label == "choferes" and model.object_name == "Conduce" %}
+                        <div class="module-list-row admin-module-row">
+                            <div class="module-list-copy">
+                                <h3><a class="admin-module-link" href="{% url 'admin:pagos_avancechofer_changelist' %}">Avances a choferes subcontratistas</a></h3>
+                                <p>Registro y control de avances pendientes por descontar.</p>
+                            </div>
+                            <div class="module-list-meta">
+                                <a class="module-list-link admin-module-action" href="{% url 'admin:pagos_avancechofer_changelist' %}">Abrir</a>
+                                <a class="module-list-metric admin-module-action-pill" href="{% url 'admin:pagos_avancechofer_add' %}">Nuevo</a>
+                            </div>
+                        </div>
                         <div class="module-list-row admin-module-row">
                             <div class="module-list-copy">
                                 <h3><a class="admin-module-link" href="{% url 'admin:pagos_pago_changelist' %}">Pago a choferes subcontratistas</a></h3>
@@ -116,12 +126,28 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    const STORAGE_KEY = "admin_dashboard_last_tab";
     const tabs = Array.from(document.querySelectorAll(".admin-sidebar-tab"));
     const panels = Array.from(document.querySelectorAll(".admin-dashboard-view"));
     const sidebarNav = document.querySelector(".sidebar-nav");
     const mainContent = document.querySelector(".main-content");
+    const moduleLinks = Array.from(
+        document.querySelectorAll(".admin-module-link, .admin-module-action, .admin-module-action-pill")
+    );
 
-    function activate(targetId) {
+    function hasTab(targetId) {
+        return tabs.some((tab) => tab.dataset.target === targetId);
+    }
+
+    function getActiveTabId() {
+        return tabs.find((tab) => tab.classList.contains("active"))?.dataset.target || null;
+    }
+
+    function activate(targetId, persistState = true) {
+        if (!hasTab(targetId)) {
+            return;
+        }
+
         tabs.forEach((tab) => {
             const isActive = tab.dataset.target === targetId;
             tab.classList.toggle("active", isActive);
@@ -131,6 +157,11 @@ document.addEventListener("DOMContentLoaded", function () {
         panels.forEach((panel) => {
             panel.classList.toggle("is-active", panel.id === targetId);
         });
+
+        if (persistState) {
+            sessionStorage.setItem(STORAGE_KEY, targetId);
+            history.replaceState(null, "", `#${targetId}`);
+        }
     }
 
     tabs.forEach((tab) => {
@@ -149,6 +180,28 @@ document.addEventListener("DOMContentLoaded", function () {
     const reportesPanel = mainContent?.querySelector('.admin-dashboard-view[data-app-label="reportes"]');
     if (trackingPanel && reportesPanel) {
         mainContent.insertBefore(trackingPanel, reportesPanel);
+    }
+
+    moduleLinks.forEach((link) => {
+        link.addEventListener("click", function () {
+            const activeTabId = getActiveTabId();
+            if (activeTabId) {
+                sessionStorage.setItem(STORAGE_KEY, activeTabId);
+            }
+        });
+    });
+
+    const hashTarget = (window.location.hash || "").replace("#", "");
+    const storedTarget = sessionStorage.getItem(STORAGE_KEY);
+    const defaultTarget = tabs.find((tab) => tab.classList.contains("active"))?.dataset.target || tabs[0]?.dataset.target;
+    const initialTarget = hasTab(hashTarget)
+        ? hashTarget
+        : hasTab(storedTarget)
+        ? storedTarget
+        : defaultTarget;
+
+    if (initialTarget) {
+        activate(initialTarget, false);
     }
 });
 </script>

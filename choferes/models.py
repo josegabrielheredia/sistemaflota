@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 
@@ -82,6 +83,26 @@ class Conduce(models.Model):
         verbose_name = "Conduce"
         verbose_name_plural = "Conduces"
         ordering = ("-fecha", "-id")
+
+    def clean(self):
+        super().clean()
+        numero_normalizado = (self.numero or "").strip().upper()
+        if not numero_normalizado:
+            return
+
+        self.numero = numero_normalizado
+        duplicado = Conduce.objects.filter(numero__iexact=numero_normalizado)
+        if self.pk:
+            duplicado = duplicado.exclude(pk=self.pk)
+        if duplicado.exists():
+            raise ValidationError(
+                {"numero": "Ya existe un conduce registrado con este numero."}
+            )
+
+    def save(self, *args, **kwargs):
+        if self.numero:
+            self.numero = self.numero.strip().upper()
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         return self.numero

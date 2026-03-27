@@ -66,7 +66,7 @@ def lista_capacitaciones(request):
                 "empleado",
                 "empleado__cargo",
                 "empleado__cargo__departamento",
-            ).order_by("-fecha"),
+            ).order_by("-fecha_inicio"),
             "rrhh_section": "capacitaciones",
         },
     )

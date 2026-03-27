@@ -69,7 +69,7 @@ class VacacionAdmin(admin.ModelAdmin):
 
 @admin.register(Capacitacion)
 class CapacitacionAdmin(admin.ModelAdmin):
-    list_display = ("empleado", "tema", "fecha", "proveedor", "horas")
+    list_display = ("empleado", "tema", "fecha_inicio", "fecha_fin", "proveedor")
     search_fields = ("empleado__nombre", "tema", "proveedor")
 
 

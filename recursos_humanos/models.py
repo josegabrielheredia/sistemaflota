@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 
 
@@ -155,15 +156,22 @@ class Capacitacion(models.Model):
         related_name="capacitaciones",
     )
     tema = models.CharField(max_length=150)
-    fecha = models.DateField()
+    fecha_inicio = models.DateField()
+    fecha_fin = models.DateField()
     proveedor = models.CharField(max_length=150, blank=True)
-    horas = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     observaciones = models.TextField(blank=True)
 
     class Meta:
         verbose_name = "Capacitaci\u00f3n"
         verbose_name_plural = "Capacitaciones"
-        ordering = ("-fecha",)
+        ordering = ("-fecha_inicio",)
+
+    def clean(self):
+        super().clean()
+        if self.fecha_inicio and self.fecha_fin and self.fecha_inicio > self.fecha_fin:
+            raise ValidationError(
+                {"fecha_fin": "La fecha final no puede ser menor que la fecha de inicio."}
+            )
 
     def __str__(self):
         return f"{self.tema} - {self.empleado.nombre}"

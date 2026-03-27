@@ -13,7 +13,7 @@
         <div>
             <span class="section-kicker">RRHH</span>
             <h2>Capacitaciones</h2>
-            <p>Consolida el historial formativo del equipo con tema, proveedor y carga horaria invertida.</p>
+            <p>Consolida el historial formativo del equipo con tema, proveedor y periodo de capacitacion.</p>
         </div>
     </div>
     <div class="table-responsive">
@@ -37,7 +37,7 @@
                     <td>
                         <div class="table-stack">
                             <span class="table-primary">{{ capacitacion.tema }}</span>
-                            <span class="table-secondary">{{ capacitacion.fecha|date:"d/m/Y" }} &middot; {{ capacitacion.horas }} horas</span>
+                            <span class="table-secondary">Desde {{ capacitacion.fecha_inicio|date:"d/m/Y" }} hasta {{ capacitacion.fecha_fin|date:"d/m/Y" }}</span>
                         </div>
                     </td>
                     <td>
