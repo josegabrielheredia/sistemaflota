@@ -61,12 +61,15 @@ SECRET_KEY = os.getenv(
     "django-insecure-@71psz8eo+i%itb$#uiaj)a)lg)!*j+5e^@#vxm2=s94@_ucf!",
 )
 
-DEBUG = env_bool("DEBUG", True)
+DEBUG = env_bool("DEBUG", False)
 
-ALLOWED_HOSTS = env_list(
-    "ALLOWED_HOSTS",
-    "127.0.0.1,localhost,.onrender.com",
-)
+ALLOWED_HOSTS = [
+    "mi-sistema-flota.onrender.com",
+    "www.sistematransportevictorinodiroche.com",
+    "sistematransportevictorinodiroche.com",
+    "localhost",
+    "127.0.0.1",
+]
 
 
 INSTALLED_APPS = [
@@ -142,7 +145,10 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS")
+CSRF_TRUSTED_ORIGINS = [
+    "https://www.sistematransportevictorinodiroche.com",
+    "https://sistematransportevictorinodiroche.com",
+]
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
