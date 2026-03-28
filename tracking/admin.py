@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Vehiculo
+from .models import Contenedor, Vehiculo
 
 
 @admin.register(Vehiculo)
@@ -52,3 +52,34 @@ class VehiculoAdmin(admin.ModelAdmin):
     @admin.display(description="Propiedad")
     def propiedad(self, obj):
         return "Empresa" if obj.es_propiedad_empresa else "Alquilado"
+
+
+@admin.register(Contenedor)
+class ContenedorAdmin(admin.ModelAdmin):
+    list_display = (
+        "codigo",
+        "color",
+        "estado",
+        "cliente_actual",
+        "fecha_salida",
+        "fecha_retorno_estimada",
+    )
+    search_fields = ("codigo", "color", "cliente_actual")
+    list_filter = ("estado",)
+    fieldsets = (
+        (
+            "Datos del contenedor",
+            {"fields": ("codigo", "color", "estado")},
+        ),
+        (
+            "Alquiler",
+            {
+                "fields": (
+                    "cliente_actual",
+                    "fecha_salida",
+                    "fecha_retorno_estimada",
+                    "observaciones",
+                )
+            },
+        ),
+    )

@@ -6,7 +6,7 @@ from inventario.models import Producto
 from pagos.models import Pago
 from recursos_humanos.models import Capacitacion, Empleado, Licencia, PagoEmpleado, Vacacion
 from reportes.models import Reporte
-from tracking.models import Vehiculo
+from tracking.models import Contenedor, Vehiculo
 
 
 def dashboard(request):
@@ -44,9 +44,9 @@ def dashboard(request):
                 "href": "/recursos_humanos/empleados/",
             },
             {
-                "title": "Vehiculos",
-                "text": "Registro y control operativo de la flota vehicular.",
-                "metric": f"{Vehiculo.objects.count()} vehiculos registrados",
+                "title": "Vehiculos y contenedores",
+                "text": "Registro y control operativo de flota y contenedores.",
+                "metric": f"{Vehiculo.objects.count()} vehiculos y {Contenedor.objects.count()} contenedores",
                 "href": "/vehiculos/",
             },
             {

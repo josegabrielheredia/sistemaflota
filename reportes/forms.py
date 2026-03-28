@@ -46,10 +46,13 @@ class GeneradorReporteForm(forms.Form):
             ],
         ),
         (
-            "Flota",
+            "Vehiculos y contenedores",
             [
                 ("vehiculos_disponibles", "Vehiculos disponibles"),
                 ("vehiculos_por_estado", "Vehiculos por estado"),
+                ("contenedores_disponibles", "Contenedores disponibles"),
+                ("contenedores_por_estado", "Contenedores por estado"),
+                ("contenedores_alquilados", "Contenedores alquilados"),
             ],
         ),
     ]

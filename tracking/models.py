@@ -51,27 +51,49 @@ class Contenedor(models.Model):
     class Estado(models.TextChoices):
         DISPONIBLE = "disponible", "Disponible"
         ALQUILADO = "alquilado", "Alquilado"
-        MANTENIMIENTO = "mantenimiento", "Mantenimiento"
-        FUERA_SERVICIO = "fuera_servicio", "Fuera de servicio"
 
-    codigo = models.CharField(max_length=40, unique=True)
-    tipo = models.CharField(max_length=80)
+    codigo = models.CharField(max_length=40, unique=True, verbose_name="Ficha del contenedor")
+    tipo = models.CharField(max_length=80, blank=True)
     capacidad = models.CharField(max_length=60, blank=True)
+    color = models.CharField(max_length=30, blank=True)
     estado = models.CharField(
         max_length=20,
         choices=Estado.choices,
         default=Estado.DISPONIBLE,
     )
+    cliente_actual = models.CharField(max_length=150, blank=True, verbose_name="A quien se le alquilo")
+    fecha_salida = models.DateField(null=True, blank=True, verbose_name="Fecha de inicio")
+    fecha_retorno_estimada = models.DateField(null=True, blank=True, verbose_name="Fecha de fin")
     ubicacion_actual = models.CharField(max_length=200, blank=True)
-    cliente_actual = models.CharField(max_length=150, blank=True)
-    fecha_salida = models.DateField(null=True, blank=True)
-    fecha_retorno_estimada = models.DateField(null=True, blank=True)
     observaciones = models.TextField(blank=True)
 
     class Meta:
         verbose_name = "Contenedor"
         verbose_name_plural = "Contenedores"
         ordering = ("codigo",)
+
+    def clean(self):
+        if self.estado == self.Estado.ALQUILADO:
+            errors = {}
+            if not self.cliente_actual:
+                errors["cliente_actual"] = "Indica a quien se le alquilo el contenedor."
+            if not self.fecha_salida:
+                errors["fecha_salida"] = "Indica la fecha de inicio del alquiler."
+            if not self.fecha_retorno_estimada:
+                errors["fecha_retorno_estimada"] = "Indica la fecha de fin del alquiler."
+            if errors:
+                raise ValidationError(errors)
+
+        if (
+            self.fecha_salida
+            and self.fecha_retorno_estimada
+            and self.fecha_salida > self.fecha_retorno_estimada
+        ):
+            raise ValidationError(
+                {
+                    "fecha_retorno_estimada": "La fecha de fin no puede ser menor que la fecha de inicio."
+                }
+            )
 
     def __str__(self):
         return self.codigo

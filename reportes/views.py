@@ -8,7 +8,7 @@ from choferes.models import Chofer, Conduce
 from inventario.models import MovimientoInventario, Producto, SuministroCombustible
 from pagos.models import Pago
 from recursos_humanos.models import Empleado, Licencia, PagoEmpleado, TipoLicencia, Vacacion
-from tracking.models import Vehiculo
+from tracking.models import Contenedor, Vehiculo
 
 from .forms import GeneradorReporteForm
 
@@ -532,6 +532,75 @@ def _build_report(tipo_reporte, fecha_desde=None, fecha_hasta=None):
             "total_value": sum(item["total"] for item in registros),
         }
 
+    if tipo_reporte == "contenedores_disponibles":
+        registros = list(
+            Contenedor.objects.filter(estado=Contenedor.Estado.DISPONIBLE)
+            .order_by("codigo")
+            .values("codigo", "color")
+        )
+        return {
+            "title": "Contenedores disponibles",
+            "description": "Listado de contenedores disponibles para nuevas asignaciones.",
+            "columns": ["Ficha del contenedor", "Color", "Estado"],
+            "rows": [[item["codigo"], item["color"] or "N/D", "Disponible"] for item in registros],
+            "total_label": "Contenedores disponibles",
+            "total_value": len(registros),
+        }
+
+    if tipo_reporte == "contenedores_por_estado":
+        registros = list(
+            Contenedor.objects.values("estado").annotate(total=Count("id")).order_by("estado")
+        )
+        return {
+            "title": "Contenedores por estado",
+            "description": "Resumen de contenedores segun estado de disponibilidad.",
+            "columns": ["Estado", "Cantidad"],
+            "rows": [[_choice_label(Contenedor.Estado.choices, item["estado"]), item["total"]] for item in registros],
+            "total_label": "Contenedores contabilizados",
+            "total_value": sum(item["total"] for item in registros),
+        }
+
+    if tipo_reporte == "contenedores_alquilados":
+        registros = list(
+            _apply_date_range(
+                Contenedor.objects.filter(estado=Contenedor.Estado.ALQUILADO),
+                "fecha_salida",
+                fecha_desde,
+                fecha_hasta,
+            )
+            .order_by("fecha_salida", "codigo")
+            .values(
+                "codigo",
+                "color",
+                "cliente_actual",
+                "fecha_salida",
+                "fecha_retorno_estimada",
+            )
+        )
+        return {
+            "title": "Contenedores alquilados",
+            "description": "Contenedores actualmente alquilados y su periodo de alquiler.",
+            "columns": [
+                "Ficha del contenedor",
+                "Color",
+                "Alquilado a",
+                "Fecha inicio",
+                "Fecha fin",
+            ],
+            "rows": [
+                [
+                    item["codigo"],
+                    item["color"] or "N/D",
+                    item["cliente_actual"] or "No definido",
+                    item["fecha_salida"].strftime("%d/%m/%Y") if item["fecha_salida"] else "N/D",
+                    item["fecha_retorno_estimada"].strftime("%d/%m/%Y") if item["fecha_retorno_estimada"] else "N/D",
+                ]
+                for item in registros
+            ],
+            "total_label": "Contenedores alquilados",
+            "total_value": len(registros),
+        }
+
     if tipo_reporte == "combustible_pendiente":
         registros = list(
             _apply_date_range(
@@ -595,6 +664,7 @@ def lista_reportes(request):
                 {"label": "Pagos choferes", "value": Pago.objects.count(), "accent": "green"},
                 {"label": "Pagos empleados", "value": PagoEmpleado.objects.count(), "accent": "teal"},
                 {"label": "Vehiculos", "value": Vehiculo.objects.count(), "accent": "amber"},
+                {"label": "Contenedores", "value": Contenedor.objects.count(), "accent": "blue"},
             ],
             "form": form,
             "selected_report": selected_report,
