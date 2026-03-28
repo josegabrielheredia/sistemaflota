@@ -797,10 +797,32 @@ body.dashboard .admin-empty-state p {
     min-width: 0;
 }
 
+.form-field.full-width {
+    grid-column: 1 / -1;
+}
+
 .form-field label {
     color: #0f172a;
     font-size: 0.86rem;
     font-weight: 700;
+}
+
+.form-field-hint {
+    color: #64748b;
+    font-size: 0.8rem;
+    line-height: 1.45;
+}
+
+.site-input,
+.site-select {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.report-filters-grid {
+    align-items: start;
 }
 
 .form-field ul.errorlist {
@@ -2123,6 +2145,11 @@ body.login .submit-row input {
 }
 
 @media (max-width: 980px) {
+    .form-grid.two-columns,
+    .form-grid.three-columns {
+        grid-template-columns: 1fr;
+    }
+
     body.dashboard .app-shell {
         grid-template-columns: 1fr;
     }
