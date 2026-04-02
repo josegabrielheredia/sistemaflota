@@ -5,5 +5,7 @@
 {{ block.super }}
 <script>
 window.__pagoSaldoUrlTemplate = "{% url 'admin:pagos_pago_saldo_avance' 0 %}";
+window.__pagoConducesUrlTemplate = "{% url 'admin:pagos_pago_conduces_chofer' 0 %}";
+window.__conduceAddUrl = "{% url 'admin:choferes_conduce_add' %}";
 </script>
 {% endblock %}

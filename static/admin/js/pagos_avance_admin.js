@@ -87,6 +87,100 @@
       });
   }
 
+  function updateConducesByChofer(choferId) {
+    const conducesField = document.getElementById("id_conduces");
+    if (!conducesField) return;
+
+    const previousSelected = new Set(
+      Array.from(conducesField.selectedOptions || []).map((option) => String(option.value))
+    );
+    conducesField.innerHTML = "";
+
+    if (!choferId) {
+      return;
+    }
+
+    const template = window.__pagoConducesUrlTemplate || "";
+    const endpoint = template.replace("/0/", "/" + choferId + "/");
+    fetch(endpoint, { credentials: "same-origin" })
+      .then(function (response) {
+        return response.ok ? response.json() : { conduces: [] };
+      })
+      .then(function (data) {
+        (data.conduces || []).forEach(function (item) {
+          const option = document.createElement("option");
+          option.value = String(item.id);
+          option.text = item.texto;
+          option.selected = previousSelected.has(String(item.id));
+          conducesField.appendChild(option);
+        });
+      })
+      .catch(function () {
+        conducesField.innerHTML = "";
+      });
+  }
+
+  function addConduceButton() {
+    const choferField = document.getElementById("id_chofer");
+    const conducesField = document.getElementById("id_conduces");
+    const addUrl = window.__conduceAddUrl || "";
+    if (!choferField || !conducesField || !addUrl) return;
+    if (document.getElementById("btn-add-conduce-inline")) return;
+
+    const wrapper = document.createElement("div");
+    wrapper.style.marginTop = "8px";
+    wrapper.style.display = "flex";
+    wrapper.style.gap = "8px";
+    wrapper.style.alignItems = "center";
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.id = "btn-add-conduce-inline";
+    button.className = "button";
+    button.textContent = "Agregar conduce ahora";
+
+    const help = document.createElement("small");
+    help.style.color = "#64748b";
+    help.textContent = "Se abrira una ventana y al guardar se actualizara la lista.";
+
+    wrapper.appendChild(button);
+    wrapper.appendChild(help);
+    conducesField.insertAdjacentElement("afterend", wrapper);
+
+    button.addEventListener("click", function () {
+      const choferId = choferField.value;
+      if (!choferId) {
+        window.alert("Primero selecciona el chofer para crear el conduce.");
+        choferField.focus();
+        return;
+      }
+
+      const popupUrl =
+        addUrl +
+        "?_popup=1&chofer=" +
+        encodeURIComponent(choferId) +
+        "&_to_field=id";
+
+      const popup = window.open(
+        popupUrl,
+        "id_conduces",
+        "height=700,width=1050,resizable=yes,scrollbars=yes"
+      );
+
+      if (!popup) {
+        window.alert("No se pudo abrir la ventana emergente. Revisa el bloqueador de popups.");
+        return;
+      }
+
+      const refreshWhenClosed = window.setInterval(function () {
+        if (popup.closed) {
+          window.clearInterval(refreshWhenClosed);
+          updateConducesByChofer(choferField.value);
+        }
+      }, 500);
+    });
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     const choferField = document.getElementById("id_chofer");
     const montoField = document.getElementById("id_monto");
@@ -97,6 +191,7 @@
 
     choferField.addEventListener("change", function () {
       updateSaldo(choferField.value);
+      updateConducesByChofer(choferField.value);
     });
 
     if (montoField) {
@@ -119,5 +214,7 @@
     }
 
     updateSaldo(choferField.value);
+    updateConducesByChofer(choferField.value);
+    addConduceButton();
   });
 })();

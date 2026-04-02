@@ -98,7 +98,13 @@
                                 {% else %}
                                 <h3>{{ model.name }}</h3>
                                 {% endif %}
+                                {% if app.app_label == "proveedores" and model.object_name == "Proveedor" %}
+                                <p>Registro y administracion del catalogo de empresas proveedoras.</p>
+                                {% elif app.app_label == "proveedores" and model.object_name == "RegistroProveedor" %}
+                                <p>Operaciones por empresa proveedora. Puedes seleccionar la empresa de la lista o crearla al instante con el boton +.</p>
+                                {% else %}
                                 <p>Gestion y mantenimiento de registros.</p>
+                                {% endif %}
                             </div>
                             <div class="module-list-meta">
                                 {% if model.admin_url %}

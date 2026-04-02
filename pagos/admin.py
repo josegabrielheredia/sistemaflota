@@ -5,12 +5,15 @@ from django.db.models import Sum
 from django.http import JsonResponse
 from django.urls import path
 
-from .forms import PagoAdminForm
+from choferes.models import Conduce
+
+from .forms import AvanceChoferAdminForm, PagoAdminForm
 from .models import AvanceChofer, Pago
 
 
 @admin.register(AvanceChofer)
 class AvanceChoferAdmin(admin.ModelAdmin):
+    form = AvanceChoferAdminForm
     list_display = (
         "chofer",
         "fecha",
@@ -33,7 +36,10 @@ class AvanceChoferAdmin(admin.ModelAdmin):
             {"fields": ("saldo_pendiente", "estado", "referencia", "observaciones")},
         ),
     )
-    readonly_fields = ("monto", "saldo_pendiente", "estado")
+    readonly_fields = ("saldo_pendiente", "estado")
+
+    class Media:
+        js = ("admin/js/avance_combustible_admin.js",)
 
     @admin.display(description="Monto")
     def monto_rd(self, obj):
@@ -79,8 +85,6 @@ class PagoAdmin(admin.ModelAdmin):
         "numero_cheque",
         "numero_recibo_pago",
     )
-    filter_horizontal = ("conduces",)
-
     class Media:
         js = ("admin/js/pagos_avance_admin.js",)
 
@@ -115,6 +119,11 @@ class PagoAdmin(admin.ModelAdmin):
                 self.admin_site.admin_view(self.saldo_avance_view),
                 name="pagos_pago_saldo_avance",
             ),
+            path(
+                "conduces-chofer/<int:chofer_id>/",
+                self.admin_site.admin_view(self.conduces_chofer_view),
+                name="pagos_pago_conduces_chofer",
+            ),
         ]
         return custom_urls + super().get_urls()
 
@@ -129,6 +138,24 @@ class PagoAdmin(admin.ModelAdmin):
         )
         return JsonResponse(
             {"saldo_pendiente": f"{saldo:.2f}", "tiene_pendiente": saldo > 0}
+        )
+
+    def conduces_chofer_view(self, request, chofer_id):
+        conduces = (
+            Conduce.objects.filter(chofer_id=chofer_id)
+            .order_by("-fecha", "-id")
+            .values("id", "numero", "fecha", "destino")
+        )
+        return JsonResponse(
+            {
+                "conduces": [
+                    {
+                        "id": item["id"],
+                        "texto": f'{item["numero"]} - {item["fecha"].strftime("%d/%m/%Y")} - {item["destino"] or "Sin destino"}',
+                    }
+                    for item in conduces
+                ]
+            }
         )
 
     def save_model(self, request, obj, form, change):

@@ -39,3 +39,52 @@ class ProveedorAdmin(admin.ModelAdmin):
     def total_tarifas(self, obj):
         total = obj.registros.aggregate(total=Sum("tarifa"))["total"] or 0
         return f"RD$ {total:,.2f}"
+
+
+@admin.register(RegistroProveedor)
+class RegistroProveedorAdmin(admin.ModelAdmin):
+    list_display = (
+        "fecha",
+        "proveedor",
+        "placa",
+        "ruta",
+        "numero_transporte",
+        "destino",
+        "tarifa_rd",
+    )
+    list_filter = ("fecha", "proveedor")
+    search_fields = (
+        "proveedor__nombre",
+        "placa",
+        "ruta",
+        "numero_transporte",
+        "destino",
+    )
+    fieldsets = (
+        (
+            "Empresa proveedora",
+            {
+                "fields": ("proveedor",),
+                "description": "Selecciona una empresa creada. Si no aparece en la lista, usa el boton + para crearla en el momento.",
+            },
+        ),
+        (
+            "Registro operativo",
+            {
+                "fields": (
+                    "fecha",
+                    "placa",
+                    "ruta",
+                    "numero_transporte",
+                    "destino",
+                    "tarifa",
+                    "observaciones",
+                )
+            },
+        ),
+    )
+    list_select_related = ("proveedor",)
+
+    @admin.display(description="Tarifa")
+    def tarifa_rd(self, obj):
+        return f"RD$ {obj.tarifa:,.2f}"

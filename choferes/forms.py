@@ -3,26 +3,30 @@ from django import forms
 from .models import Chofer
 
 
+def coerce_yes_no(value):
+    return str(value).lower() in {"true", "1", "si", "yes"}
+
+
 class ChoferSubcontratistaForm(forms.ModelForm):
     nombres = forms.CharField(max_length=100, label="Nombres")
     apellidos = forms.CharField(max_length=100, label="Apellidos")
     carta_buena_conducta = forms.TypedChoiceField(
         label="Carta de buena conducta",
-        choices=((True, "Si"), (False, "No")),
-        coerce=lambda value: value in [True, "True", "true", "1", 1, "Si", "si"],
-        widget=forms.RadioSelect,
+        choices=(("true", "Si"), ("false", "No")),
+        coerce=coerce_yes_no,
+        widget=forms.Select,
     )
     rntt = forms.TypedChoiceField(
         label="RNTT",
-        choices=((True, "Si"), (False, "No")),
-        coerce=lambda value: value in [True, "True", "true", "1", 1, "Si", "si"],
-        widget=forms.RadioSelect,
+        choices=(("true", "Si"), ("false", "No")),
+        coerce=coerce_yes_no,
+        widget=forms.Select,
     )
     seguro_ley = forms.TypedChoiceField(
         label="Seguro de ley",
-        choices=((True, "Si"), (False, "No")),
-        coerce=lambda value: value in [True, "True", "true", "1", 1, "Si", "si"],
-        widget=forms.RadioSelect,
+        choices=(("true", "Si"), ("false", "No")),
+        coerce=coerce_yes_no,
+        widget=forms.Select,
     )
 
     class Meta:
@@ -76,6 +80,15 @@ class ChoferSubcontratistaForm(forms.ModelForm):
                 self.fields["nombres"].initial = partes[0]
                 self.fields["apellidos"].initial = " ".join(partes[1:])
 
+        if not self.is_bound:
+            self.fields["carta_buena_conducta"].initial = (
+                "true" if self.instance and self.instance.carta_buena_conducta else "false"
+            )
+            self.fields["rntt"].initial = "true" if self.instance and self.instance.rntt else "false"
+            self.fields["seguro_ley"].initial = (
+                "true" if self.instance and self.instance.seguro_ley else "false"
+            )
+
         placeholders = {
             "nombres": "Ej. Juan Carlos",
             "apellidos": "Ej. Perez Ramirez",
@@ -105,12 +118,13 @@ class ChoferSubcontratistaForm(forms.ModelForm):
                     attrs={"class": "site-input", "type": "date"}
                 )
 
-        if "class" not in self.fields["carta_buena_conducta"].widget.attrs:
-            self.fields["carta_buena_conducta"].widget.attrs["class"] = "inline-radio-list"
-        if "class" not in self.fields["rntt"].widget.attrs:
-            self.fields["rntt"].widget.attrs["class"] = "inline-radio-list"
-        if "class" not in self.fields["seguro_ley"].widget.attrs:
-            self.fields["seguro_ley"].widget.attrs["class"] = "inline-radio-list"
+    def clean(self):
+        cleaned_data = super().clean()
+        if not cleaned_data.get("rntt"):
+            cleaned_data["vencimiento_carnet_rntt"] = None
+        if not cleaned_data.get("seguro_ley"):
+            cleaned_data["vencimiento_seguro_ley"] = None
+        return cleaned_data
 
     def save(self, commit=True):
         instance = super().save(commit=False)

@@ -8,6 +8,43 @@ from choferes.models import Conduce
 from .models import AvanceChofer, Pago
 
 
+class AvanceChoferAdminForm(forms.ModelForm):
+    class Meta:
+        model = AvanceChofer
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["galones"].label = "Cantidad de galones"
+        self.fields["precio_por_galon"].label = "Precio por galon (RD$)"
+        self.fields["monto"].label = "Monto total (RD$)"
+        self.fields["monto"].required = False
+        self.fields["monto"].widget = forms.NumberInput(
+            attrs={
+                "class": "vDecimalField",
+                "step": "0.01",
+                "min": "0.00",
+                "readonly": "readonly",
+            }
+        )
+        self.fields["monto"].help_text = "Se calcula automaticamente: galones x precio por galon."
+
+    def clean(self):
+        cleaned_data = super().clean()
+        galones = self._to_decimal(cleaned_data.get("galones"))
+        precio_por_galon = self._to_decimal(cleaned_data.get("precio_por_galon"))
+        cleaned_data["monto"] = galones * precio_por_galon
+        return cleaned_data
+
+    def _to_decimal(self, raw_value):
+        if raw_value in (None, ""):
+            return Decimal("0.00")
+        try:
+            return Decimal(str(raw_value).replace(",", ""))
+        except (InvalidOperation, TypeError):
+            return Decimal("0.00")
+
+
 class PagoAdminForm(forms.ModelForm):
     saldo_combustible_pendiente = forms.DecimalField(
         label="Saldo pendiente por combustible suministrado por adelantado (RD$)",
@@ -52,8 +89,12 @@ class PagoAdminForm(forms.ModelForm):
         self.fields["numero_cheque"].label = "Numero del cheque"
         self.fields["numero_recibo_pago"].label = "Numero de recibo de pago"
         self.fields["conduces"].required = False
+        self.fields["conduces"].widget = forms.SelectMultiple(
+            attrs={"class": "site-input", "size": "10"}
+        )
         self.fields["conduces"].help_text = (
-            "Puedes seleccionar uno o varios conduces para este pago (ej. 10 conduces)."
+            "Selecciona uno o varios conduces para este pago (ejemplo: 10 conduces). "
+            "Si falta uno, puedes agregarlo al momento con el boton 'Agregar conduce ahora'."
         )
         self._configurar_queryset_conduces()
         self.fields["numero_cheque"].help_text = "Este campo se usa solo cuando el metodo es cheque."
@@ -114,9 +155,12 @@ class PagoAdminForm(forms.ModelForm):
 
     def _configurar_queryset_conduces(self):
         chofer_id = self._chofer_id_actual()
-        queryset = Conduce.objects.all().order_by("-fecha", "-id")
         if chofer_id:
             queryset = Conduce.objects.filter(chofer_id=chofer_id).order_by("-fecha", "-id")
+        elif self.instance and self.instance.pk:
+            queryset = self.instance.conduces.all().order_by("-fecha", "-id")
+        else:
+            queryset = Conduce.objects.none()
         self.fields["conduces"].queryset = queryset
 
     def _saldo_pendiente_actual(self):

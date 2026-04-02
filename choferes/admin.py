@@ -69,6 +69,9 @@ class ChoferAdmin(admin.ModelAdmin):
     )
     inlines = [ConduceInline, AvanceChoferInline]
 
+    class Media:
+        js = ("admin/js/chofer_documentos_admin.js",)
+
     @admin.display(description="Saldo pendiente por combustible suministrado por adelantado")
     def saldo_combustible_pendiente(self, obj):
         saldo = (
