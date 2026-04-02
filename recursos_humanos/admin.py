@@ -1,6 +1,17 @@
 from django.contrib import admin
 
-from .models import Capacitacion, Cargo, Departamento, Empleado, Licencia, PagoEmpleado, TipoLicencia, Vacacion
+from .forms import RegistroGastoForm
+from .models import (
+    Capacitacion,
+    Cargo,
+    Departamento,
+    Empleado,
+    Licencia,
+    PagoEmpleado,
+    RegistroGasto,
+    TipoLicencia,
+    Vacacion,
+)
 
 
 @admin.register(Departamento)
@@ -23,18 +34,30 @@ class LicenciaInline(admin.TabularInline):
 class VacacionInline(admin.TabularInline):
     model = Vacacion
     extra = 0
+    fields = ("fecha_inicio", "fecha_fin", "pagada_sin_disfrute", "estado", "observaciones")
+    readonly_fields = ("estado",)
 
 
 class CapacitacionInline(admin.TabularInline):
     model = Capacitacion
     extra = 0
+    fields = ("tema", "fecha_inicio", "fecha_fin", "costo", "proveedor", "observaciones")
 
 
 @admin.register(Empleado)
 class EmpleadoAdmin(admin.ModelAdmin):
-    list_display = ("nombre_completo", "cedula", "departamento", "designacion", "estado")
+    list_display = ("nombre_completo", "cedula", "fecha_nacimiento", "departamento", "designacion", "estado")
     search_fields = ("nombre", "apellidos", "cedula", "telefono", "correo")
     inlines = [LicenciaInline, VacacionInline, CapacitacionInline]
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if "fecha_nacimiento" in form.base_fields:
+            form.base_fields["fecha_nacimiento"].required = True
+            form.base_fields["fecha_nacimiento"].help_text = (
+                "Dato requerido para seguimiento de cumpleanos."
+            )
+        return form
 
     @admin.display(description="Empleado")
     def nombre_completo(self, obj):
@@ -63,17 +86,87 @@ class LicenciaAdmin(admin.ModelAdmin):
 
 @admin.register(Vacacion)
 class VacacionAdmin(admin.ModelAdmin):
-    list_display = ("empleado", "fecha_inicio", "fecha_fin", "estado")
+    list_display = ("empleado", "fecha_inicio", "fecha_fin", "estado", "pagada_sin_disfrute")
     search_fields = ("empleado__nombre",)
+    list_filter = ("estado", "pagada_sin_disfrute", "fecha_inicio", "fecha_fin")
+    fields = (
+        "empleado",
+        "fecha_inicio",
+        "fecha_fin",
+        "pagada_sin_disfrute",
+        "estado",
+        "observaciones",
+    )
+    readonly_fields = ("estado",)
+
+    def get_queryset(self, request):
+        Vacacion.sincronizar_estados()
+        return super().get_queryset(request)
 
 
 @admin.register(Capacitacion)
 class CapacitacionAdmin(admin.ModelAdmin):
-    list_display = ("empleado", "tema", "fecha_inicio", "fecha_fin", "proveedor")
+    list_display = ("empleado", "tema", "fecha_inicio", "fecha_fin", "costo_rd", "proveedor")
     search_fields = ("empleado__nombre", "tema", "proveedor")
+
+    @admin.display(description="Costo")
+    def costo_rd(self, obj):
+        if obj.costo is None:
+            return "No aplica"
+        return f"RD$ {obj.costo:,.2f}"
 
 
 @admin.register(PagoEmpleado)
 class PagoEmpleadoAdmin(admin.ModelAdmin):
     list_display = ("empleado", "fecha", "monto", "metodo", "referencia")
     search_fields = ("empleado__nombre", "empleado__apellidos", "empleado__cedula", "referencia")
+
+
+@admin.register(RegistroGasto)
+class RegistroGastoAdmin(admin.ModelAdmin):
+    form = RegistroGastoForm
+    list_display = (
+        "fecha",
+        "proveedor",
+        "motivo",
+        "con_comprobante",
+        "numero_comprobante",
+        "valor",
+        "itbis",
+        "propinas",
+        "total_rd",
+    )
+    list_filter = ("fecha", "con_comprobante", "proveedor")
+    search_fields = ("proveedor", "motivo", "numero_comprobante")
+    fieldsets = (
+        (
+            "Datos del gasto",
+            {
+                "fields": (
+                    "fecha",
+                    "con_comprobante",
+                    "numero_comprobante",
+                    "proveedor",
+                    "motivo",
+                )
+            },
+        ),
+        (
+            "Monto",
+            {
+                "fields": (
+                    "valor",
+                    "itbis",
+                    "propinas",
+                    "observaciones",
+                )
+            },
+        ),
+    )
+
+    class Media:
+        js = ("admin/js/rrhh_gastos_admin.js",)
+
+    @admin.display(description="Total")
+    def total_rd(self, obj):
+        return f"RD$ {obj.total:,.2f}"

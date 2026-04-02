@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import MovimientoInventario, Producto, SuministroCombustible
+from .models import MovimientoInventario, Producto
 
 
 class MovimientoInventarioInline(admin.TabularInline):
@@ -19,9 +19,3 @@ class ProductoAdmin(admin.ModelAdmin):
 class MovimientoInventarioAdmin(admin.ModelAdmin):
     list_display = ("producto", "tipo", "cantidad", "fecha", "referencia")
     search_fields = ("producto__nombre", "referencia")
-
-
-@admin.register(SuministroCombustible)
-class SuministroCombustibleAdmin(admin.ModelAdmin):
-    list_display = ("producto", "chofer", "vehiculo", "cantidad", "precio_unitario", "estado_pago", "fecha")
-    search_fields = ("chofer__nombre", "vehiculo__placa", "producto__nombre")

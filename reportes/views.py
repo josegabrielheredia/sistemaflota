@@ -1,3 +1,5 @@
+from datetime import date, timedelta
+
 from django.db.models import Count, Sum
 from django.db.models.functions import TruncMonth
 from django.http import HttpResponse
@@ -5,9 +7,17 @@ from django.shortcuts import render
 from django.utils import timezone
 
 from choferes.models import Chofer, Conduce
-from inventario.models import MovimientoInventario, Producto, SuministroCombustible
-from pagos.models import Pago
-from recursos_humanos.models import Empleado, Licencia, PagoEmpleado, TipoLicencia, Vacacion
+from inventario.models import MovimientoInventario, Producto
+from pagos.models import AvanceChofer, Pago
+from proveedores.models import RegistroProveedor
+from recursos_humanos.models import (
+    Empleado,
+    Licencia,
+    PagoEmpleado,
+    RegistroGasto,
+    TipoLicencia,
+    Vacacion,
+)
 from tracking.models import Contenedor, Vehiculo
 
 from .forms import GeneradorReporteForm
@@ -25,6 +35,39 @@ def _choice_label(choices, value, default="No definido"):
 def _slugify_filename(value):
     normalized = "".join(char.lower() if char.isalnum() else "_" for char in value)
     return "_".join(part for part in normalized.split("_") if part)
+
+
+def _cumpleanos_en_anio(fecha_nacimiento, anio):
+    if not fecha_nacimiento:
+        return None
+    try:
+        return fecha_nacimiento.replace(year=anio)
+    except ValueError:
+        return date(anio, 2, 28)
+
+
+def _cumpleanos_en_rango(fecha_nacimiento, fecha_desde=None, fecha_hasta=None):
+    if not fecha_nacimiento:
+        return False
+    md = fecha_nacimiento.month * 100 + fecha_nacimiento.day
+    if fecha_desde:
+        md_desde = fecha_desde.month * 100 + fecha_desde.day
+        if md < md_desde:
+            return False
+    if fecha_hasta:
+        md_hasta = fecha_hasta.month * 100 + fecha_hasta.day
+        if md > md_hasta:
+            return False
+    return True
+
+
+def _estado_vencimiento_documento(fecha_vencimiento, fecha_referencia=None, dias_alerta=30):
+    if not fecha_vencimiento:
+        return "Sin fecha"
+    fecha_referencia = fecha_referencia or timezone.localdate()
+    if fecha_vencimiento <= fecha_referencia:
+        return "Vencido"
+    return "Vigente"
 
 
 def _apply_date_range(queryset, field_name, fecha_desde=None, fecha_hasta=None):
@@ -87,6 +130,7 @@ def _export_report_to_excel(report):
 
 def _build_report(tipo_reporte, fecha_desde=None, fecha_hasta=None):
     hoy = timezone.localdate()
+    Vacacion.sincronizar_estados()
 
     if tipo_reporte == "choferes_registrados":
         registros = list(
@@ -189,20 +233,122 @@ def _build_report(tipo_reporte, fecha_desde=None, fecha_hasta=None):
             "total_value": sum(item["total"] for item in registros),
         }
 
-    if tipo_reporte == "conduces_por_estado":
+    if tipo_reporte == "choferes_licencias_por_vencimiento":
+        choferes = _apply_date_range(
+            Chofer.objects.filter(vencimiento_licencia__isnull=False),
+            "vencimiento_licencia",
+            fecha_desde,
+            fecha_hasta,
+        ).order_by("vencimiento_licencia", "nombre")
+        registros = list(choferes)
+        return {
+            "title": "Licencias de choferes por vencimiento",
+            "description": "Control de vencimiento de licencias de conducir de choferes subcontratistas.",
+            "columns": ["Chofer", "Cedula", "Licencia", "Categoria", "Vencimiento", "Estado"],
+            "rows": [
+                [
+                    item.nombre,
+                    item.cedula,
+                    item.licencia,
+                    item.categoria_licencia or "N/D",
+                    item.vencimiento_licencia.strftime("%d/%m/%Y"),
+                    _estado_vencimiento_documento(item.vencimiento_licencia, hoy),
+                ]
+                for item in registros
+            ],
+            "total_label": "Choferes listados",
+            "total_value": len(registros),
+        }
+
+    if tipo_reporte == "choferes_rntt_por_vencimiento":
+        choferes = _apply_date_range(
+            Chofer.objects.filter(rntt=True, vencimiento_carnet_rntt__isnull=False),
+            "vencimiento_carnet_rntt",
+            fecha_desde,
+            fecha_hasta,
+        ).order_by("vencimiento_carnet_rntt", "nombre")
+        registros = list(choferes)
+        return {
+            "title": "Carnet RNTT por vencimiento",
+            "description": "Seguimiento de vencimiento del carnet RNTT de choferes activos en el requisito.",
+            "columns": ["Chofer", "Cedula", "RNTT", "Vencimiento carnet", "Estado"],
+            "rows": [
+                [
+                    item.nombre,
+                    item.cedula,
+                    "Si" if item.rntt else "No",
+                    item.vencimiento_carnet_rntt.strftime("%d/%m/%Y"),
+                    _estado_vencimiento_documento(item.vencimiento_carnet_rntt, hoy),
+                ]
+                for item in registros
+            ],
+            "total_label": "Choferes listados",
+            "total_value": len(registros),
+        }
+
+    if tipo_reporte == "choferes_seguro_ley_por_vencimiento":
+        choferes = _apply_date_range(
+            Chofer.objects.filter(seguro_ley=True, vencimiento_seguro_ley__isnull=False),
+            "vencimiento_seguro_ley",
+            fecha_desde,
+            fecha_hasta,
+        ).order_by("vencimiento_seguro_ley", "nombre")
+        registros = list(choferes)
+        return {
+            "title": "Seguro de ley por vencimiento",
+            "description": "Control de vencimiento del seguro de ley de choferes subcontratistas.",
+            "columns": ["Chofer", "Cedula", "Seguro de ley", "Vencimiento seguro", "Estado"],
+            "rows": [
+                [
+                    item.nombre,
+                    item.cedula,
+                    "Si" if item.seguro_ley else "No",
+                    item.vencimiento_seguro_ley.strftime("%d/%m/%Y"),
+                    _estado_vencimiento_documento(item.vencimiento_seguro_ley, hoy),
+                ]
+                for item in registros
+            ],
+            "total_label": "Choferes listados",
+            "total_value": len(registros),
+        }
+
+    if tipo_reporte == "conduces_listado":
         registros = list(
-            _apply_date_range(Conduce.objects.all(), "fecha", fecha_desde, fecha_hasta)
-            .values("estado")
-            .annotate(total=Count("id"))
-            .order_by("estado")
+            _apply_date_range(
+                Conduce.objects.select_related("chofer", "vehiculo"),
+                "fecha",
+                fecha_desde,
+                fecha_hasta,
+            ).order_by("-fecha", "-id")
         )
         return {
-            "title": "Conduces por estado",
-            "description": "Resumen del flujo de conduces segun su estado actual.",
-            "columns": ["Estado", "Cantidad"],
-            "rows": [[_choice_label(Conduce.Estado.choices, item["estado"]), item["total"]] for item in registros],
-            "total_label": "Conduces registrados",
-            "total_value": sum(item["total"] for item in registros),
+            "title": "Listado de conduces",
+            "description": "Listado detallado de conduces registrados en el periodo seleccionado.",
+            "columns": [
+                "Numero de conduce",
+                "Fecha",
+                "Chofer",
+                "Vehiculo",
+                "Origen",
+                "Destino",
+                "Monto generado",
+                "Estado",
+            ],
+            "rows": [
+                [
+                    item.numero,
+                    item.fecha.strftime("%d/%m/%Y") if item.fecha else "N/D",
+                    item.chofer.nombre,
+                    item.vehiculo.placa if item.vehiculo else "N/D",
+                    item.origen or "N/D",
+                    item.destino or "N/D",
+                    _format_currency(item.monto_generado or 0),
+                    item.get_estado_display(),
+                ]
+                for item in registros
+            ],
+            "total_label": "Conduces listados",
+            "total_value": len(registros),
         }
 
     if tipo_reporte == "licencias_activas":
@@ -265,6 +411,124 @@ def _build_report(tipo_reporte, fecha_desde=None, fecha_hasta=None):
             "rows": [[item["cargo__departamento__nombre"] or "Sin departamento", item["total"]] for item in registros],
             "total_label": "Empleados contabilizados",
             "total_value": sum(item["total"] for item in registros),
+        }
+
+    if tipo_reporte == "empleados_por_cumpleanos":
+        empleados = list(
+            Empleado.objects.select_related("cargo", "cargo__departamento")
+            .filter(fecha_nacimiento__isnull=False)
+            .order_by("nombre", "apellidos")
+        )
+        anio_referencia = (fecha_desde or fecha_hasta or hoy).year
+        registros = []
+        for empleado in empleados:
+            if not _cumpleanos_en_rango(empleado.fecha_nacimiento, fecha_desde, fecha_hasta):
+                continue
+            cumple_anual = _cumpleanos_en_anio(empleado.fecha_nacimiento, anio_referencia)
+            if not cumple_anual:
+                continue
+            registros.append(
+                {
+                    "empleado": f"{empleado.nombre} {empleado.apellidos}".strip(),
+                    "cedula": empleado.cedula,
+                    "departamento": empleado.cargo.departamento.nombre,
+                    "fecha_nacimiento": empleado.fecha_nacimiento,
+                    "cumple_anual": cumple_anual,
+                }
+            )
+
+        registros.sort(key=lambda item: item["cumple_anual"])
+        return {
+            "title": "Empleados por fecha de cumpleanos",
+            "description": "Listado de empleados filtrado por rango de cumpleanos (mes y dia).",
+            "columns": ["Empleado", "Cedula", "Departamento", "Fecha de nacimiento", "Cumpleanos"],
+            "rows": [
+                [
+                    item["empleado"],
+                    item["cedula"],
+                    item["departamento"],
+                    item["fecha_nacimiento"].strftime("%d/%m/%Y"),
+                    item["cumple_anual"].strftime("%d/%m"),
+                ]
+                for item in registros
+            ],
+            "total_label": "Empleados listados",
+            "total_value": len(registros),
+        }
+
+    if tipo_reporte == "gastos_rrhh_listado":
+        registros = list(
+            _apply_date_range(RegistroGasto.objects.all(), "fecha", fecha_desde, fecha_hasta)
+            .order_by("-fecha", "-id")
+        )
+        return {
+            "title": "Todos los gastos (listado)",
+            "description": "Listado detallado de gastos de RRHH en el rango de fechas seleccionado.",
+            "columns": [
+                "Fecha",
+                "Proveedor",
+                "Comprobante",
+                "Numero comprobante",
+                "Valor",
+                "ITBIS",
+                "Propinas",
+                "Total",
+                "Motivo",
+            ],
+            "rows": [
+                [
+                    item.fecha.strftime("%d/%m/%Y"),
+                    item.proveedor,
+                    "Con comprobante" if item.con_comprobante else "Sin comprobante",
+                    item.numero_comprobante or "-",
+                    _format_currency(item.valor or 0),
+                    _format_currency(item.itbis or 0),
+                    _format_currency(item.propinas or 0),
+                    _format_currency(item.total),
+                    item.motivo,
+                ]
+                for item in registros
+            ],
+            "total_label": "Total gastado",
+            "total_value": _format_currency(sum((item.total or 0) for item in registros)),
+        }
+
+    if tipo_reporte == "gastos_rrhh_por_proveedor":
+        registros = list(
+            _apply_date_range(RegistroGasto.objects.all(), "fecha", fecha_desde, fecha_hasta)
+            .values("proveedor")
+            .annotate(
+                cantidad=Count("id"),
+                valor=Sum("valor"),
+                itbis=Sum("itbis"),
+                propinas=Sum("propinas"),
+            )
+            .order_by("proveedor")
+        )
+        return {
+            "title": "Gastos por proveedor",
+            "description": "Consolidado de gastos de RRHH agrupado por proveedor.",
+            "columns": ["Proveedor", "Registros", "Valor", "ITBIS", "Propinas", "Total"],
+            "rows": [
+                [
+                    item["proveedor"],
+                    item["cantidad"],
+                    _format_currency(item["valor"] or 0),
+                    _format_currency(item["itbis"] or 0),
+                    _format_currency(item["propinas"] or 0),
+                    _format_currency(
+                        (item["valor"] or 0) + (item["itbis"] or 0) + (item["propinas"] or 0)
+                    ),
+                ]
+                for item in registros
+            ],
+            "total_label": "Total gastado",
+            "total_value": _format_currency(
+                sum(
+                    (item["valor"] or 0) + (item["itbis"] or 0) + (item["propinas"] or 0)
+                    for item in registros
+                )
+            ),
         }
 
     if tipo_reporte == "licencias_por_estado":
@@ -474,20 +738,34 @@ def _build_report(tipo_reporte, fecha_desde=None, fecha_hasta=None):
             "total_value": sum(item["total"] for item in registros),
         }
 
-    if tipo_reporte == "suministros_por_estado_pago":
+    if tipo_reporte == "suministros_combustible_por_estado":
         registros = list(
-            _apply_date_range(SuministroCombustible.objects.all(), "fecha", fecha_desde, fecha_hasta)
-            .values("estado_pago")
-            .annotate(total=Count("id"), monto_pendiente=Sum("saldo_pendiente"))
-            .order_by("estado_pago")
+            _apply_date_range(AvanceChofer.objects.all(), "fecha", fecha_desde, fecha_hasta)
+            .values("estado")
+            .annotate(
+                total=Count("id"),
+                galones=Sum("galones"),
+                monto=Sum("monto"),
+                saldo=Sum("saldo_pendiente"),
+            )
+            .order_by("estado")
         )
         return {
-            "title": "Suministros por estado de pago",
-            "description": "Resumen de despachos de combustible agrupados por estado de pago.",
-            "columns": ["Estado de pago", "Cantidad", "Saldo pendiente"],
-            "rows": [[_choice_label(SuministroCombustible.EstadoPago.choices, item["estado_pago"]), item["total"], _format_currency(item["monto_pendiente"] or 0)] for item in registros],
-            "total_label": "Suministros contabilizados",
-            "total_value": sum(item["total"] for item in registros),
+            "title": "Suministros de combustible por estado",
+            "description": "Resumen de suministros de combustible entregados a choferes.",
+            "columns": ["Estado", "Suministros", "Galones", "Monto suministrado", "Saldo pendiente"],
+            "rows": [
+                [
+                    _choice_label(AvanceChofer.Estado.choices, item["estado"]),
+                    item["total"],
+                    float(item["galones"] or 0),
+                    _format_currency(item["monto"] or 0),
+                    _format_currency(item["saldo"] or 0),
+                ]
+                for item in registros
+            ],
+            "total_label": "Monto total suministrado",
+            "total_value": _format_currency(sum((item["monto"] or 0) for item in registros)),
         }
 
     if tipo_reporte == "vehiculos_disponibles":
@@ -601,10 +879,33 @@ def _build_report(tipo_reporte, fecha_desde=None, fecha_hasta=None):
             "total_value": len(registros),
         }
 
-    if tipo_reporte == "combustible_pendiente":
+    if tipo_reporte == "registros_proveedores_por_empresa":
+        registros = list(
+            _apply_date_range(RegistroProveedor.objects.select_related("proveedor"), "fecha", fecha_desde, fecha_hasta)
+            .values("proveedor__nombre")
+            .annotate(total_registros=Count("id"), total_tarifa=Sum("tarifa"))
+            .order_by("proveedor__nombre")
+        )
+        return {
+            "title": "Registros de proveedores por empresa",
+            "description": "Consolidado por empresa proveedora con cantidad de registros y tarifa acumulada.",
+            "columns": ["Empresa", "Registros", "Tarifa acumulada"],
+            "rows": [
+                [
+                    item["proveedor__nombre"],
+                    item["total_registros"],
+                    _format_currency(item["total_tarifa"] or 0),
+                ]
+                for item in registros
+            ],
+            "total_label": "Tarifa total consolidada",
+            "total_value": _format_currency(sum((item["total_tarifa"] or 0) for item in registros)),
+        }
+
+    if tipo_reporte == "saldo_combustible_pendiente":
         registros = list(
             _apply_date_range(
-                SuministroCombustible.objects.select_related("chofer", "producto", "vehiculo")
+                AvanceChofer.objects.select_related("chofer")
                 .filter(saldo_pendiente__gt=0),
                 "fecha",
                 fecha_desde,
@@ -613,15 +914,16 @@ def _build_report(tipo_reporte, fecha_desde=None, fecha_hasta=None):
             .order_by("-fecha", "-id")
         )
         return {
-            "title": "Suministros de combustible pendientes",
-            "description": "Despachos de combustible con saldo pendiente de cobro o pago parcial.",
-            "columns": ["Fecha", "Chofer", "Producto", "Vehiculo", "Saldo pendiente"],
+            "title": "Saldo pendiente por combustible suministrado por adelantado",
+            "description": "Suministros de combustible por adelantado pendientes de cobro a choferes.",
+            "columns": ["Fecha", "Chofer", "Galones", "Precio por galon", "Monto suministro", "Saldo pendiente"],
             "rows": [
                 [
                     item.fecha.strftime("%d/%m/%Y"),
                     item.chofer.nombre,
-                    item.producto.nombre,
-                    item.vehiculo.placa if item.vehiculo else "N/D",
+                    float(item.galones or 0),
+                    _format_currency(item.precio_por_galon or 0),
+                    _format_currency(item.monto or 0),
                     _format_currency(item.saldo_pendiente),
                 ]
                 for item in registros
@@ -629,12 +931,36 @@ def _build_report(tipo_reporte, fecha_desde=None, fecha_hasta=None):
             "total_label": "Saldo pendiente total",
             "total_value": _format_currency(
                 _apply_date_range(
-                    SuministroCombustible.objects.filter(saldo_pendiente__gt=0),
+                    AvanceChofer.objects.filter(saldo_pendiente__gt=0),
                     "fecha",
                     fecha_desde,
                     fecha_hasta,
                 ).aggregate(total=Sum("saldo_pendiente"))["total"] or 0
             ),
+        }
+
+    if tipo_reporte == "cobros_combustible_por_mes":
+        registros = list(
+            _apply_date_range(Pago.objects.filter(descuento_avances__gt=0), "fecha", fecha_desde, fecha_hasta)
+            .annotate(periodo=TruncMonth("fecha"))
+            .values("periodo")
+            .annotate(total=Sum("descuento_avances"), cantidad=Count("id"))
+            .order_by("-periodo")
+        )
+        return {
+            "title": "Cobros de combustible por mes",
+            "description": "Cobros aplicados por suministro de combustible en pagos a choferes.",
+            "columns": ["Mes", "Pagos con descuento", "Total cobrado"],
+            "rows": [
+                [
+                    item["periodo"].strftime("%m/%Y") if item["periodo"] else "Sin fecha",
+                    item["cantidad"],
+                    _format_currency(item["total"] or 0),
+                ]
+                for item in registros
+            ],
+            "total_label": "Total cobrado por combustible",
+            "total_value": _format_currency(sum((item["total"] or 0) for item in registros)),
         }
 
     return None
@@ -663,6 +989,7 @@ def lista_reportes(request):
                 {"label": "Choferes", "value": Chofer.objects.count(), "accent": "blue"},
                 {"label": "Pagos choferes", "value": Pago.objects.count(), "accent": "green"},
                 {"label": "Pagos empleados", "value": PagoEmpleado.objects.count(), "accent": "teal"},
+                {"label": "Gastos RRHH", "value": RegistroGasto.objects.count(), "accent": "amber"},
                 {"label": "Vehiculos", "value": Vehiculo.objects.count(), "accent": "amber"},
                 {"label": "Contenedores", "value": Contenedor.objects.count(), "accent": "blue"},
             ],

@@ -4,9 +4,52 @@
 <div class="subnav">
     <a class="subnav-link {% if rrhh_section == 'empleados' %}active{% endif %}" href="/recursos_humanos/empleados/">Empleados</a>
     <a class="subnav-link {% if rrhh_section == 'pagos' %}active{% endif %}" href="/recursos_humanos/pagos/">Pagos</a>
+    <a class="subnav-link {% if rrhh_section == 'gastos' %}active{% endif %}" href="/recursos_humanos/gastos/">Registros de gastos</a>
     <a class="subnav-link {% if rrhh_section == 'licencias' %}active{% endif %}" href="/recursos_humanos/licencias/">Licencias</a>
     <a class="subnav-link {% if rrhh_section == 'vacaciones' %}active{% endif %}" href="/recursos_humanos/vacaciones/">Vacaciones</a>
 </div>
+
+{% if proximos_cumpleanos %}
+<section class="content-card">
+    <div class="section-heading">
+        <div>
+            <span class="section-kicker">Notificaciones</span>
+            <h2>Proximos cumpleanos</h2>
+            <p>Colaboradores que cumplen anos en los proximos 7 dias.</p>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table site-table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Colaborador</th>
+                    <th>Fecha de cumpleanos</th>
+                    <th>Aviso</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in proximos_cumpleanos %}
+                <tr>
+                    <td>{{ item.empleado.nombre }} {{ item.empleado.apellidos }}</td>
+                    <td>{{ item.proximo_cumpleanos|date:"d/m" }}</td>
+                    <td>
+                        <span class="table-badge {% if item.dias_restantes == 0 %}success{% else %}amber{% endif %}">
+                            {% if item.dias_restantes == 0 %}
+                            Hoy
+                            {% elif item.dias_restantes == 1 %}
+                            Manana
+                            {% else %}
+                            En {{ item.dias_restantes }} dias
+                            {% endif %}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
 
 <section class="content-card">
     <div class="section-heading">
@@ -23,6 +66,7 @@
                     <th>Nombres</th>
                     <th>Apellidos</th>
                     <th>Cedula</th>
+                    <th>Fecha de nacimiento</th>
                     <th>Departamento</th>
                     <th>Designacion</th>
                 </tr>
@@ -33,12 +77,13 @@
                     <td>{{ empleado.nombre }}</td>
                     <td>{{ empleado.apellidos }}</td>
                     <td>{{ empleado.cedula }}</td>
+                    <td>{% if empleado.fecha_nacimiento %}{{ empleado.fecha_nacimiento|date:"d/m/Y" }}{% else %}No registrada{% endif %}</td>
                     <td>{{ empleado.cargo.departamento.nombre }}</td>
                     <td>{{ empleado.cargo.nombre }}</td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5">
+                    <td colspan="6">
                         <div class="empty-state">
                             <strong>No hay empleados registrados</strong>
                             <p>La nomina visible aparecera aqui cuando se agreguen colaboradores al sistema.</p>

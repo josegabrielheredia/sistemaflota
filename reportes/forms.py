@@ -10,7 +10,10 @@ class GeneradorReporteForm(forms.Form):
                 ("choferes_por_estado", "Choferes por estado"),
                 ("choferes_carta_buena_conducta", "Choferes por carta de buena conducta"),
                 ("choferes_rntt", "Choferes por cumplimiento de RNTT"),
-                ("conduces_por_estado", "Conduces por estado"),
+                ("choferes_licencias_por_vencimiento", "Licencias de choferes por vencimiento"),
+                ("choferes_rntt_por_vencimiento", "Carnet RNTT por vencimiento"),
+                ("choferes_seguro_ley_por_vencimiento", "Seguro de ley por vencimiento"),
+                ("conduces_listado", "Listado de conduces"),
             ],
         ),
         (
@@ -19,6 +22,9 @@ class GeneradorReporteForm(forms.Form):
                 ("empleados_activos", "Empleados activos"),
                 ("empleados_por_estado", "Empleados por estado"),
                 ("empleados_por_departamento", "Empleados por departamento"),
+                ("empleados_por_cumpleanos", "Empleados por fecha de cumpleanos"),
+                ("gastos_rrhh_listado", "Todos los gastos (listado)"),
+                ("gastos_rrhh_por_proveedor", "Gastos por proveedor"),
                 ("pagos_empleados_por_mes", "Pagos de empleados por mes"),
                 ("pagos_empleados_por_metodo", "Pagos de empleados por metodo"),
                 ("licencias_activas", "Licencias activas"),
@@ -29,20 +35,21 @@ class GeneradorReporteForm(forms.Form):
             ],
         ),
         (
-            "Pagos a choferes",
+            "Pagos y combustible a choferes",
             [
                 ("pagos_por_mes", "Total pagado a choferes por mes"),
                 ("pagos_por_metodo", "Pagos a choferes por metodo"),
+                ("suministros_combustible_por_estado", "Suministros de combustible por estado"),
+                ("saldo_combustible_pendiente", "Saldo pendiente por combustible suministrado por adelantado"),
+                ("cobros_combustible_por_mes", "Cobros de combustible por mes"),
             ],
         ),
         (
-            "Inventario y combustible",
+            "Inventario",
             [
                 ("productos_por_categoria", "Productos por categoria"),
                 ("productos_activos", "Productos activos e inactivos"),
                 ("movimientos_por_tipo", "Movimientos de inventario por tipo"),
-                ("suministros_por_estado_pago", "Suministros de combustible por estado de pago"),
-                ("combustible_pendiente", "Suministros de combustible pendientes"),
             ],
         ),
         (
@@ -53,6 +60,12 @@ class GeneradorReporteForm(forms.Form):
                 ("contenedores_disponibles", "Contenedores disponibles"),
                 ("contenedores_por_estado", "Contenedores por estado"),
                 ("contenedores_alquilados", "Contenedores alquilados"),
+            ],
+        ),
+        (
+            "Proveedores",
+            [
+                ("registros_proveedores_por_empresa", "Registros de proveedores por empresa"),
             ],
         ),
     ]

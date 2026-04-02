@@ -51,6 +51,16 @@
                     {{ form.licencia.errors }}
                 </div>
                 <div class="form-field">
+                    {{ form.categoria_licencia.label_tag }}
+                    {{ form.categoria_licencia }}
+                    {{ form.categoria_licencia.errors }}
+                </div>
+                <div class="form-field">
+                    {{ form.vencimiento_licencia.label_tag }}
+                    {{ form.vencimiento_licencia }}
+                    {{ form.vencimiento_licencia.errors }}
+                </div>
+                <div class="form-field">
                     {{ form.carta_buena_conducta.label_tag }}
                     {{ form.carta_buena_conducta }}
                     {{ form.carta_buena_conducta.errors }}
@@ -60,6 +70,21 @@
                     {{ form.rntt }}
                     {{ form.rntt.errors }}
                     <span class="form-field-hint">El RNTT es un requisito interno de la empresa.</span>
+                </div>
+                <div class="form-field">
+                    {{ form.vencimiento_carnet_rntt.label_tag }}
+                    {{ form.vencimiento_carnet_rntt }}
+                    {{ form.vencimiento_carnet_rntt.errors }}
+                </div>
+                <div class="form-field">
+                    {{ form.seguro_ley.label_tag }}
+                    {{ form.seguro_ley }}
+                    {{ form.seguro_ley.errors }}
+                </div>
+                <div class="form-field">
+                    {{ form.vencimiento_seguro_ley.label_tag }}
+                    {{ form.vencimiento_seguro_ley }}
+                    {{ form.vencimiento_seguro_ley.errors }}
                 </div>
             </div>
         </div>

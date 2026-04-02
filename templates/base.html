@@ -941,7 +941,7 @@
             <a class="sidebar-link {% if request.path == '/' %}active{% endif %}" href="/"><span>Dashboard</span><small>Resumen ejecutivo</small></a>
             <a class="sidebar-link {% if '/inventario/' in request.path %}active{% endif %}" href="/inventario/"><span>Inventario</span><small>Productos y stock</small></a>
             <a class="sidebar-link {% if '/choferes/' in request.path or '/pagos/' in request.path %}active{% endif %}" href="/choferes/"><span>Gestion de choferes</span><small>Registro, conduces y pagos</small></a>
-            <a class="sidebar-link {% if '/recursos_humanos/' in request.path %}active{% endif %}" href="/recursos_humanos/empleados/"><span>RRHH</span><small>Empleados, pagos, licencias y vacaciones</small></a>
+            <a class="sidebar-link {% if '/recursos_humanos/' in request.path %}active{% endif %}" href="/recursos_humanos/empleados/"><span>RRHH</span><small>Empleados, pagos, gastos, licencias y vacaciones</small></a>
             <a class="sidebar-link {% if '/vehiculos/' in request.path or '/tracking/' in request.path %}active{% endif %}" href="/vehiculos/"><span>Vehiculos y contenedores</span><small>Registro de flota y contenedores</small></a>
             <a class="sidebar-link {% if '/reportes/' in request.path %}active{% endif %}" href="/reportes/"><span>Reportes</span><small>Documentacion y novedades</small></a>
         </nav>

@@ -72,8 +72,8 @@
                         {% if app.app_label == "choferes" and model.object_name == "Conduce" %}
                         <div class="module-list-row admin-module-row">
                             <div class="module-list-copy">
-                                <h3><a class="admin-module-link" href="{% url 'admin:pagos_avancechofer_changelist' %}">Avances a choferes subcontratistas</a></h3>
-                                <p>Registro y control de avances pendientes por descontar.</p>
+                                <h3><a class="admin-module-link" href="{% url 'admin:pagos_avancechofer_changelist' %}">Suministro de combustible a choferes</a></h3>
+                                <p>Registro de galones suministrados por adelantado y saldo pendiente por combustible.</p>
                             </div>
                             <div class="module-list-meta">
                                 <a class="module-list-link admin-module-action" href="{% url 'admin:pagos_avancechofer_changelist' %}">Abrir</a>
@@ -83,7 +83,7 @@
                         <div class="module-list-row admin-module-row">
                             <div class="module-list-copy">
                                 <h3><a class="admin-module-link" href="{% url 'admin:pagos_pago_changelist' %}">Pago a choferes subcontratistas</a></h3>
-                                <p>Gestion y mantenimiento de registros.</p>
+                                <p>Pagos con opcion de descuento parcial del saldo por combustible.</p>
                             </div>
                             <div class="module-list-meta">
                                 <a class="module-list-link admin-module-action" href="{% url 'admin:pagos_pago_changelist' %}">Abrir</a>

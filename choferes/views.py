@@ -20,6 +20,7 @@ def lista_choferes(request):
                 {"label": "Licencias cargadas", "value": choferes.exclude(licencia="").count(), "accent": "teal"},
                 {"label": "Carta de buena conducta", "value": choferes.filter(carta_buena_conducta=True).count(), "accent": "green"},
                 {"label": "RNTT cumplido", "value": choferes.filter(rntt=True).count(), "accent": "amber"},
+                {"label": "Seguro de ley", "value": choferes.filter(seguro_ley=True).count(), "accent": "blue"},
             ],
             "choferes": choferes,
         },
@@ -48,7 +49,11 @@ def registrar_chofer(request):
 
 
 def lista_pagos_choferes(request):
-    pagos = Pago.objects.select_related("chofer", "conduce", "registrado_por").order_by("-fecha", "-id")
+    pagos = (
+        Pago.objects.select_related("chofer", "conduce", "registrado_por")
+        .prefetch_related("conduces")
+        .order_by("-fecha", "-id")
+    )
     total_pagado = pagos.aggregate(total=Sum("monto"))["total"] or 0
     return render(
         request,

@@ -83,6 +83,7 @@ INSTALLED_APPS = [
     "inventario",
     "choferes",
     "pagos",
+    "proveedores.apps.ProveedoresConfig",
     "recursos_humanos.apps.RecursosHumanosConfig",
     "reportes",
     "tracking.apps.VehiculosConfig",

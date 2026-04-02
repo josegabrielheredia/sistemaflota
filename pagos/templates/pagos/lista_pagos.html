@@ -31,7 +31,13 @@
                         <div class="table-stack">
                             <span class="table-primary">{{ pago.chofer.nombre }}</span>
                             <span class="table-secondary">
-                                {% if pago.conduce %}Conduce {{ pago.conduce.numero }}{% else %}Sin conduce vinculado{% endif %}
+                                {% with conduce_text=pago.resumen_conduces %}
+                                    {% if conduce_text %}
+                                        Conduces {{ conduce_text }}
+                                    {% else %}
+                                        Sin conduce vinculado
+                                    {% endif %}
+                                {% endwith %}
                                 {% if pago.referencia %} &middot; Ref. {{ pago.referencia }}{% endif %}
                             </span>
                         </div>

@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 
 
 class Departamento(models.Model):
@@ -43,6 +44,7 @@ class Empleado(models.Model):
     nombre = models.CharField(max_length=150)
     apellidos = models.CharField(max_length=150, blank=True)
     cedula = models.CharField(max_length=20, unique=True)
+    fecha_nacimiento = models.DateField(null=True, blank=True)
     fecha_ingreso = models.DateField()
     cargo = models.ForeignKey(
         Cargo,
@@ -133,6 +135,11 @@ class Vacacion(models.Model):
     )
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField()
+    pagada_sin_disfrute = models.BooleanField(
+        default=False,
+        verbose_name="Pagada sin disfrute",
+        help_text="Indica si las vacaciones fueron pagadas sin disfrute de dias.",
+    )
     estado = models.CharField(
         max_length=20,
         choices=Estado.choices,
@@ -144,6 +151,39 @@ class Vacacion(models.Model):
         verbose_name = "Vacaci\u00f3n"
         verbose_name_plural = "Vacaciones"
         ordering = ("-fecha_inicio",)
+
+    def clean(self):
+        super().clean()
+        if self.fecha_inicio and self.fecha_fin and self.fecha_inicio > self.fecha_fin:
+            raise ValidationError(
+                {"fecha_fin": "La fecha final no puede ser menor que la fecha de inicio."}
+            )
+
+    def estado_actual(self, fecha_referencia=None):
+        fecha_referencia = fecha_referencia or timezone.localdate()
+        if fecha_referencia < self.fecha_inicio:
+            return self.Estado.PROGRAMADA
+        if self.fecha_inicio <= fecha_referencia <= self.fecha_fin:
+            return self.Estado.EN_CURSO
+        return self.Estado.COMPLETADA
+
+    @classmethod
+    def sincronizar_estados(cls):
+        hoy = timezone.localdate()
+        cls.objects.filter(fecha_inicio__gt=hoy).exclude(estado=cls.Estado.PROGRAMADA).update(
+            estado=cls.Estado.PROGRAMADA
+        )
+        cls.objects.filter(
+            fecha_inicio__lte=hoy,
+            fecha_fin__gte=hoy,
+        ).exclude(estado=cls.Estado.EN_CURSO).update(estado=cls.Estado.EN_CURSO)
+        cls.objects.filter(fecha_fin__lt=hoy).exclude(estado=cls.Estado.COMPLETADA).update(
+            estado=cls.Estado.COMPLETADA
+        )
+
+    def save(self, *args, **kwargs):
+        self.estado = self.estado_actual()
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.empleado.nombre} - {self.fecha_inicio}"
@@ -158,6 +198,13 @@ class Capacitacion(models.Model):
     tema = models.CharField(max_length=150)
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField()
+    costo = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        help_text="Costo de la capacitacion, si aplica.",
+    )
     proveedor = models.CharField(max_length=150, blank=True)
     observaciones = models.TextField(blank=True)
 
@@ -172,6 +219,8 @@ class Capacitacion(models.Model):
             raise ValidationError(
                 {"fecha_fin": "La fecha final no puede ser menor que la fecha de inicio."}
             )
+        if self.costo is not None and self.costo <= 0:
+            raise ValidationError({"costo": "El costo debe ser mayor que cero si es indicado."})
 
     def __str__(self):
         return f"{self.tema} - {self.empleado.nombre}"
@@ -201,3 +250,52 @@ class PagoEmpleado(models.Model):
 
     def __str__(self):
         return f"{self.empleado} - {self.monto}"
+
+
+class RegistroGasto(models.Model):
+    fecha = models.DateField(default=timezone.localdate)
+    con_comprobante = models.BooleanField(default=False)
+    numero_comprobante = models.CharField(max_length=80, blank=True)
+    proveedor = models.CharField(max_length=150)
+    valor = models.DecimalField(max_digits=12, decimal_places=2)
+    itbis = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    propinas = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    motivo = models.CharField(max_length=255)
+    observaciones = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = "Registro de gasto"
+        verbose_name_plural = "Registros de gastos"
+        ordering = ("-fecha", "-id")
+
+    def clean(self):
+        super().clean()
+        errors = {}
+
+        if self.con_comprobante and not (self.numero_comprobante or "").strip():
+            errors["numero_comprobante"] = (
+                "Debes indicar el numero de comprobante cuando el gasto es con comprobante."
+            )
+
+        if self.valor is not None and self.valor <= 0:
+            errors["valor"] = "El valor del gasto debe ser mayor que cero."
+        if self.itbis is not None and self.itbis < 0:
+            errors["itbis"] = "El ITBIS no puede ser negativo."
+        if self.propinas is not None and self.propinas < 0:
+            errors["propinas"] = "Las propinas no pueden ser negativas."
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        if not self.con_comprobante:
+            self.numero_comprobante = ""
+        self.numero_comprobante = (self.numero_comprobante or "").strip()
+        return super().save(*args, **kwargs)
+
+    @property
+    def total(self):
+        return (self.valor or 0) + (self.itbis or 0) + (self.propinas or 0)
+
+    def __str__(self):
+        return f"{self.fecha:%d/%m/%Y} - {self.proveedor} - RD$ {self.total:,.2f}"

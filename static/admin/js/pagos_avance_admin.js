@@ -11,28 +11,48 @@
     return Number(String(value).replace(/,/g, "")) || 0;
   }
 
+  function updateChequeFieldState() {
+    const metodoField = document.getElementById("id_metodo");
+    const numeroChequeField = document.getElementById("id_numero_cheque");
+    if (!metodoField || !numeroChequeField) return;
+
+    const esCheque = metodoField.value === "cheque";
+    numeroChequeField.disabled = !esCheque;
+    if (!esCheque) {
+      numeroChequeField.value = "";
+    }
+  }
+
   function updateMontoNeto() {
     const montoField = document.getElementById("id_monto");
-    const descontarField = document.getElementById("id_descontar_avance_pendiente");
+    const descontarField = document.getElementById("id_descontar_suministro_combustible");
+    const cobroField = document.getElementById("id_monto_a_cobrar_combustible");
     const netoField = document.getElementById("id_monto_neto_a_pagar");
-    if (!montoField || !descontarField || !netoField) return;
+    if (!montoField || !descontarField || !cobroField || !netoField) return;
 
     const monto = parseAmount(montoField.value);
-    const descuento = descontarField.checked ? Math.min(monto, currentSaldoPendiente) : 0;
+    const cobro = parseAmount(cobroField.value);
+    const descuento = descontarField.checked
+      ? Math.min(monto, currentSaldoPendiente, Math.max(cobro, 0))
+      : 0;
     const neto = Math.max(monto - descuento, 0);
     netoField.value = formatCurrency(neto);
   }
 
   function updateSaldo(choferId) {
-    const saldoField = document.getElementById("id_saldo_avance_pendiente");
-    const descontarField = document.getElementById("id_descontar_avance_pendiente");
-    if (!saldoField || !descontarField) return;
+    const saldoField = document.getElementById("id_saldo_combustible_pendiente");
+    const descontarField = document.getElementById("id_descontar_suministro_combustible");
+    const cobroField = document.getElementById("id_monto_a_cobrar_combustible");
+    const montoField = document.getElementById("id_monto");
+    if (!saldoField || !descontarField || !cobroField || !montoField) return;
 
     if (!choferId) {
       saldoField.value = formatCurrency(0);
       currentSaldoPendiente = 0;
       descontarField.checked = false;
       descontarField.disabled = true;
+      cobroField.value = formatCurrency(0);
+      cobroField.disabled = true;
       updateMontoNeto();
       return;
     }
@@ -47,8 +67,12 @@
         currentSaldoPendiente = parseAmount(data.saldo_pendiente);
         saldoField.value = formatCurrency(currentSaldoPendiente);
         descontarField.disabled = !data.tiene_pendiente;
+        cobroField.disabled = !data.tiene_pendiente;
+        const montoActual = parseAmount(montoField.value);
+        cobroField.value = formatCurrency(Math.min(currentSaldoPendiente, montoActual));
         if (!data.tiene_pendiente) {
           descontarField.checked = false;
+          cobroField.value = formatCurrency(0);
         }
         updateMontoNeto();
       })
@@ -57,6 +81,8 @@
         currentSaldoPendiente = 0;
         descontarField.checked = false;
         descontarField.disabled = true;
+        cobroField.value = formatCurrency(0);
+        cobroField.disabled = true;
         updateMontoNeto();
       });
   }
@@ -64,7 +90,9 @@
   document.addEventListener("DOMContentLoaded", function () {
     const choferField = document.getElementById("id_chofer");
     const montoField = document.getElementById("id_monto");
-    const descontarField = document.getElementById("id_descontar_avance_pendiente");
+    const descontarField = document.getElementById("id_descontar_suministro_combustible");
+    const cobroField = document.getElementById("id_monto_a_cobrar_combustible");
+    const metodoField = document.getElementById("id_metodo");
     if (!choferField) return;
 
     choferField.addEventListener("change", function () {
@@ -78,6 +106,16 @@
 
     if (descontarField) {
       descontarField.addEventListener("change", updateMontoNeto);
+    }
+
+    if (cobroField) {
+      cobroField.addEventListener("input", updateMontoNeto);
+      cobroField.addEventListener("change", updateMontoNeto);
+    }
+
+    if (metodoField) {
+      metodoField.addEventListener("change", updateChequeFieldState);
+      updateChequeFieldState();
     }
 
     updateSaldo(choferField.value);

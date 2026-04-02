@@ -4,6 +4,7 @@
 <div class="subnav">
     <a class="subnav-link {% if rrhh_section == 'empleados' %}active{% endif %}" href="/recursos_humanos/empleados/">Empleados</a>
     <a class="subnav-link {% if rrhh_section == 'pagos' %}active{% endif %}" href="/recursos_humanos/pagos/">Pagos</a>
+    <a class="subnav-link {% if rrhh_section == 'gastos' %}active{% endif %}" href="/recursos_humanos/gastos/">Registros de gastos</a>
     <a class="subnav-link {% if rrhh_section == 'licencias' %}active{% endif %}" href="/recursos_humanos/licencias/">Licencias</a>
     <a class="subnav-link {% if rrhh_section == 'vacaciones' %}active{% endif %}" href="/recursos_humanos/vacaciones/">Vacaciones</a>
 </div>
@@ -23,6 +24,7 @@
                     <th>Colaborador</th>
                     <th>Jornada</th>
                     <th>Proveedor</th>
+                    <th>Costo</th>
                 </tr>
             </thead>
             <tbody>
@@ -52,10 +54,19 @@
                             </span>
                         </div>
                     </td>
+                    <td>
+                        <span class="table-value">
+                            {% if capacitacion.costo %}
+                            RD$ {{ capacitacion.costo }}
+                            {% else %}
+                            No aplica
+                            {% endif %}
+                        </span>
+                    </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="3">
+                    <td colspan="4">
                         <div class="empty-state">
                             <strong>Sin capacitaciones registradas</strong>
                             <p>El historial formativo del personal aparecera en esta tabla.</p>

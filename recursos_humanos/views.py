@@ -1,12 +1,55 @@
+from datetime import date, timedelta
+
 from django.db.models import Sum
 from django.shortcuts import render
 
-from .models import Capacitacion, Empleado, Licencia, PagoEmpleado, Vacacion
+from .models import Capacitacion, Empleado, Licencia, PagoEmpleado, RegistroGasto, Vacacion
+
+
+def _cumpleanos_en_anio(fecha_nacimiento, anio):
+    if not fecha_nacimiento:
+        return None
+    try:
+        return fecha_nacimiento.replace(year=anio)
+    except ValueError:
+        return date(anio, 2, 28)
+
+
+def _proximo_cumpleanos(fecha_nacimiento, referencia=None):
+    referencia = referencia or date.today()
+    cumple_este_anio = _cumpleanos_en_anio(fecha_nacimiento, referencia.year)
+    if not cumple_este_anio:
+        return None
+    if cumple_este_anio < referencia:
+        return _cumpleanos_en_anio(fecha_nacimiento, referencia.year + 1)
+    return cumple_este_anio
 
 
 def lista_empleados(request):
+    Vacacion.sincronizar_estados()
     empleados = Empleado.objects.select_related("cargo", "cargo__departamento").order_by("nombre")
     total_pagos = PagoEmpleado.objects.aggregate(total=Sum("monto"))["total"] or 0
+    hoy = date.today()
+    proximos_cumpleanos = []
+    for empleado in empleados:
+        if not empleado.fecha_nacimiento:
+            continue
+        proximo = _proximo_cumpleanos(empleado.fecha_nacimiento, hoy)
+        if not proximo:
+            continue
+        dias_restantes = (proximo - hoy).days
+        if 0 <= dias_restantes <= 7:
+            proximos_cumpleanos.append(
+                {
+                    "empleado": empleado,
+                    "proximo_cumpleanos": proximo,
+                    "dias_restantes": dias_restantes,
+                }
+            )
+
+    proximos_cumpleanos.sort(
+        key=lambda item: (item["dias_restantes"], item["empleado"].nombre.lower())
+    )
     return render(
         request,
         "recursos_humanos/lista_empleados.html",
@@ -22,8 +65,14 @@ def lista_empleados(request):
                     "accent": "amber",
                 },
                 {"label": "Vacaciones en curso", "value": Vacacion.objects.filter(estado=Vacacion.Estado.EN_CURSO).count(), "accent": "teal"},
+                {
+                    "label": "Cumpleanos proximos (7 dias)",
+                    "value": len(proximos_cumpleanos),
+                    "accent": "blue",
+                },
             ],
             "empleados": empleados,
+            "proximos_cumpleanos": proximos_cumpleanos,
             "rrhh_section": "empleados",
         },
     )
@@ -43,6 +92,7 @@ def lista_licencias(request):
 
 
 def lista_vacaciones(request):
+    Vacacion.sincronizar_estados()
     return render(
         request,
         "recursos_humanos/lista_vacaciones.html",
@@ -87,5 +137,29 @@ def lista_pagos_empleados(request):
             ],
             "pagos": pagos,
             "rrhh_section": "pagos",
+        },
+    )
+
+
+def lista_gastos_rrhh(request):
+    gastos = RegistroGasto.objects.order_by("-fecha", "-id")
+    total_valor = gastos.aggregate(total=Sum("valor"))["total"] or 0
+    total_itbis = gastos.aggregate(total=Sum("itbis"))["total"] or 0
+    total_propinas = gastos.aggregate(total=Sum("propinas"))["total"] or 0
+    total_general = total_valor + total_itbis + total_propinas
+    return render(
+        request,
+        "recursos_humanos/lista_gastos.html",
+        {
+            "page_title": "Registros de gastos",
+            "page_intro": "Control de gastos operativos y administrativos del area de recursos humanos.",
+            "summary_cards": [
+                {"label": "Gastos registrados", "value": gastos.count(), "accent": "blue"},
+                {"label": "Total valor", "value": f"RD$ {total_valor:,.2f}", "accent": "teal"},
+                {"label": "Total ITBIS", "value": f"RD$ {total_itbis:,.2f}", "accent": "amber"},
+                {"label": "Total general", "value": f"RD$ {total_general:,.2f}", "accent": "green"},
+            ],
+            "gastos": gastos,
+            "rrhh_section": "gastos",
         },
     )

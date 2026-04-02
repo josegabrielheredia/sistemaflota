@@ -14,8 +14,16 @@ class ConduceInline(admin.TabularInline):
 class AvanceChoferInline(admin.TabularInline):
     model = AvanceChofer
     extra = 0
-    fields = ("fecha", "monto", "saldo_pendiente", "estado", "referencia")
-    readonly_fields = ("saldo_pendiente", "estado")
+    fields = (
+        "fecha",
+        "galones",
+        "precio_por_galon",
+        "monto",
+        "saldo_pendiente",
+        "estado",
+        "referencia",
+    )
+    readonly_fields = ("monto", "saldo_pendiente", "estado")
     show_change_link = True
 
 
@@ -26,9 +34,17 @@ class ChoferAdmin(admin.ModelAdmin):
         "nombre",
         "cedula",
         "licencia",
+        "categoria_licencia",
+        "vencimiento_licencia",
+        "estado_licencia_actual",
         "carta_buena_conducta",
         "rntt",
-        "saldo_avance_pendiente",
+        "vencimiento_carnet_rntt",
+        "estado_rntt_actual",
+        "seguro_ley",
+        "vencimiento_seguro_ley",
+        "estado_seguro_actual",
+        "saldo_combustible_pendiente",
     )
     search_fields = ("nombre", "cedula", "licencia")
     fieldsets = (
@@ -40,16 +56,21 @@ class ChoferAdmin(admin.ModelAdmin):
                     "apellidos",
                     "cedula",
                     "licencia",
+                    "categoria_licencia",
+                    "vencimiento_licencia",
                     "carta_buena_conducta",
                     "rntt",
+                    "vencimiento_carnet_rntt",
+                    "seguro_ley",
+                    "vencimiento_seguro_ley",
                 )
             },
         ),
     )
     inlines = [ConduceInline, AvanceChoferInline]
 
-    @admin.display(description="Saldo avance pendiente")
-    def saldo_avance_pendiente(self, obj):
+    @admin.display(description="Saldo pendiente por combustible suministrado por adelantado")
+    def saldo_combustible_pendiente(self, obj):
         saldo = (
             obj.avances.filter(
                 estado=AvanceChofer.Estado.PENDIENTE, saldo_pendiente__gt=0
@@ -57,6 +78,18 @@ class ChoferAdmin(admin.ModelAdmin):
             or 0
         )
         return f"RD$ {saldo:,.2f}"
+
+    @admin.display(description="Estado licencia")
+    def estado_licencia_actual(self, obj):
+        return obj.estado_licencia()
+
+    @admin.display(description="Estado carnet RNTT")
+    def estado_rntt_actual(self, obj):
+        return obj.estado_carnet_rntt()
+
+    @admin.display(description="Estado seguro ley")
+    def estado_seguro_actual(self, obj):
+        return obj.estado_seguro_ley()
 
 
 @admin.register(Conduce)

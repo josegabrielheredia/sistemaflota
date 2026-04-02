@@ -11,13 +11,37 @@ from .models import AvanceChofer, Pago
 
 @admin.register(AvanceChofer)
 class AvanceChoferAdmin(admin.ModelAdmin):
-    list_display = ("chofer", "fecha", "monto_rd", "saldo_pendiente_rd", "estado")
+    list_display = (
+        "chofer",
+        "fecha",
+        "galones",
+        "precio_por_galon_rd",
+        "monto_rd",
+        "saldo_pendiente_rd",
+        "estado",
+    )
     list_filter = ("estado", "fecha")
     search_fields = ("chofer__nombre", "chofer__cedula", "referencia")
+
+    fieldsets = (
+        (
+            "Suministro de combustible",
+            {"fields": ("chofer", "fecha", "galones", "precio_por_galon", "monto")},
+        ),
+        (
+            "Control de saldo",
+            {"fields": ("saldo_pendiente", "estado", "referencia", "observaciones")},
+        ),
+    )
+    readonly_fields = ("monto", "saldo_pendiente", "estado")
 
     @admin.display(description="Monto")
     def monto_rd(self, obj):
         return f"RD$ {obj.monto:,.2f}"
+
+    @admin.display(description="Precio/galon")
+    def precio_por_galon_rd(self, obj):
+        return f"RD$ {obj.precio_por_galon:,.2f}"
 
     @admin.display(description="Saldo pendiente")
     def saldo_pendiente_rd(self, obj):
@@ -36,25 +60,44 @@ class PagoAdmin(admin.ModelAdmin):
     change_form_template = "admin/pagos/pago/change_form.html"
     list_display = (
         "chofer",
-        "conduce",
+        "conduces_resumen",
         "monto_rd",
         "descuento_avances_rd",
         "monto_neto_rd",
         "liquido_avances",
         "metodo",
+        "numero_cheque",
+        "numero_recibo_pago",
         "fecha",
     )
     list_filter = ("metodo", "fecha", "liquido_avances")
-    search_fields = ("chofer__nombre", "conduce__numero", "referencia")
+    search_fields = (
+        "chofer__nombre",
+        "conduce__numero",
+        "conduces__numero",
+        "referencia",
+        "numero_cheque",
+        "numero_recibo_pago",
+    )
+    filter_horizontal = ("conduces",)
 
     class Media:
         js = ("admin/js/pagos_avance_admin.js",)
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.select_related("chofer", "conduce").prefetch_related("conduces")
 
     @admin.display(description="Monto")
     def monto_rd(self, obj):
         return f"RD$ {obj.monto:,.2f}"
 
-    @admin.display(description="Descuento avances")
+    @admin.display(description="Conduces")
+    def conduces_resumen(self, obj):
+        resumen = obj.resumen_conduces()
+        return resumen or "Sin conduce vinculado"
+
+    @admin.display(description="Cobro de combustible suministrado por adelantado")
     def descuento_avances_rd(self, obj):
         return f"RD$ {obj.descuento_avances:,.2f}"
 
@@ -68,7 +111,7 @@ class PagoAdmin(admin.ModelAdmin):
     def get_urls(self):
         custom_urls = [
             path(
-                "saldo-avance/<int:chofer_id>/",
+                "saldo-combustible/<int:chofer_id>/",
                 self.admin_site.admin_view(self.saldo_avance_view),
                 name="pagos_pago_saldo_avance",
             ),
@@ -93,14 +136,19 @@ class PagoAdmin(admin.ModelAdmin):
             obj.registrado_por = request.user
 
         aplicar_descuento = (
-            not change and form.cleaned_data.get("descontar_avance_pendiente", False)
+            not change and form.cleaned_data.get("descontar_suministro_combustible", False)
+        )
+        monto_a_cobrar = (
+            form.cleaned_data.get("monto_a_cobrar_combustible", Decimal("0.00"))
+            if not change
+            else Decimal("0.00")
         )
         super().save_model(request, obj, form, change)
 
-        if aplicar_descuento and obj.chofer_id and obj.monto > 0:
-            descuento_aplicado = self._aplicar_descuento_avances(
+        if aplicar_descuento and obj.chofer_id and monto_a_cobrar > 0:
+            descuento_aplicado = self._aplicar_descuento_combustible(
                 chofer_id=obj.chofer_id,
-                monto_pago=obj.monto,
+                monto_cobrar=monto_a_cobrar,
             )
             if descuento_aplicado > 0:
                 saldo_restante = (
@@ -115,8 +163,8 @@ class PagoAdmin(admin.ModelAdmin):
                 obj.liquido_avances = saldo_restante <= 0
                 obj.save(update_fields=["descuento_avances", "liquido_avances"])
 
-    def _aplicar_descuento_avances(self, chofer_id, monto_pago):
-        monto_restante = monto_pago or Decimal("0.00")
+    def _aplicar_descuento_combustible(self, chofer_id, monto_cobrar):
+        monto_restante = monto_cobrar or Decimal("0.00")
         if monto_restante <= 0:
             return Decimal("0.00")
 

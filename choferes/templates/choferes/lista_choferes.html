@@ -22,8 +22,15 @@
                     <th>Chofer</th>
                     <th>Cedula</th>
                     <th>Licencia</th>
+                    <th>Vence licencia</th>
+                    <th>Estado licencia</th>
                     <th>Carta de buena conducta</th>
                     <th>RNTT</th>
+                    <th>Vence carnet RNTT</th>
+                    <th>Estado carnet RNTT</th>
+                    <th>Seguro de ley</th>
+                    <th>Vence seguro ley</th>
+                    <th>Estado seguro ley</th>
                 </tr>
             </thead>
             <tbody>
@@ -31,7 +38,24 @@
                 <tr>
                     <td><span class="table-primary">{{ chofer.nombre }}</span></td>
                     <td>{{ chofer.cedula }}</td>
-                    <td><span class="table-badge info">{{ chofer.licencia }}</span></td>
+                    <td>
+                        <div class="table-stack">
+                            <span class="table-primary">{{ chofer.licencia }}</span>
+                            <span class="table-secondary">{{ chofer.categoria_licencia|default:"Sin categoria" }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        {% if chofer.vencimiento_licencia %}
+                        {{ chofer.vencimiento_licencia|date:"d/m/Y" }}
+                        {% else %}
+                        No registrado
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="table-badge {% if chofer.estado_licencia == 'Vencido' %}warning{% elif chofer.estado_licencia == 'Vigente' %}success{% else %}neutral{% endif %}">
+                            {{ chofer.estado_licencia }}
+                        </span>
+                    </td>
                     <td>
                         <span class="table-badge {% if chofer.carta_buena_conducta %}success{% else %}warning{% endif %}">
                             {% if chofer.carta_buena_conducta %}Si{% else %}No{% endif %}
@@ -42,10 +66,39 @@
                             {% if chofer.rntt %}Si{% else %}No{% endif %}
                         </span>
                     </td>
+                    <td>
+                        {% if chofer.vencimiento_carnet_rntt %}
+                        {{ chofer.vencimiento_carnet_rntt|date:"d/m/Y" }}
+                        {% else %}
+                        No registrado
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="table-badge {% if chofer.estado_carnet_rntt == 'Vencido' %}warning{% elif chofer.estado_carnet_rntt == 'Vigente' %}success{% else %}neutral{% endif %}">
+                            {{ chofer.estado_carnet_rntt }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="table-badge {% if chofer.seguro_ley %}success{% else %}warning{% endif %}">
+                            {% if chofer.seguro_ley %}Si{% else %}No{% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        {% if chofer.vencimiento_seguro_ley %}
+                        {{ chofer.vencimiento_seguro_ley|date:"d/m/Y" }}
+                        {% else %}
+                        No registrado
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="table-badge {% if chofer.estado_seguro_ley == 'Vencido' %}warning{% elif chofer.estado_seguro_ley == 'Vigente' %}success{% else %}neutral{% endif %}">
+                            {{ chofer.estado_seguro_ley }}
+                        </span>
+                    </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5">
+                    <td colspan="12">
                         <div class="empty-state">
                             <strong>No hay choferes subcontratistas registrados</strong>
                             <p>Registra cada chofer para luego asociarle conduces y pagos por servicio.</p>

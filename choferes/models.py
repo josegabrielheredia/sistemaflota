@@ -20,6 +20,9 @@ class Chofer(models.Model):
     licencia = models.CharField(max_length=50)
     carta_buena_conducta = models.BooleanField(default=False)
     rntt = models.BooleanField(default=False)
+    vencimiento_carnet_rntt = models.DateField(null=True, blank=True)
+    seguro_ley = models.BooleanField(default=False)
+    vencimiento_seguro_ley = models.DateField(null=True, blank=True)
     categoria_licencia = models.CharField(max_length=50, blank=True)
     vencimiento_licencia = models.DateField(null=True, blank=True)
     estado = models.CharField(
@@ -46,6 +49,46 @@ class Chofer(models.Model):
 
     def __str__(self):
         return self.nombre
+
+    def clean(self):
+        super().clean()
+        errors = {}
+
+        if self.rntt and not self.vencimiento_carnet_rntt:
+            errors["vencimiento_carnet_rntt"] = (
+                "Debes indicar la fecha de vencimiento del carnet RNTT."
+            )
+
+        if self.seguro_ley and not self.vencimiento_seguro_ley:
+            errors["vencimiento_seguro_ley"] = (
+                "Debes indicar la fecha de vencimiento del seguro de ley."
+            )
+
+        if errors:
+            raise ValidationError(errors)
+
+    def _estado_documento(self, fecha_vencimiento, aplica=True, fecha_referencia=None):
+        if not aplica:
+            return "No aplica"
+        if not fecha_vencimiento:
+            return "Sin fecha"
+        fecha_referencia = fecha_referencia or timezone.localdate()
+        return "Vencido" if fecha_vencimiento <= fecha_referencia else "Vigente"
+
+    def estado_licencia(self):
+        return self._estado_documento(self.vencimiento_licencia, aplica=True)
+
+    def estado_carnet_rntt(self):
+        return self._estado_documento(
+            self.vencimiento_carnet_rntt,
+            aplica=self.rntt,
+        )
+
+    def estado_seguro_ley(self):
+        return self._estado_documento(
+            self.vencimiento_seguro_ley,
+            aplica=self.seguro_ley,
+        )
 
 
 class Conduce(models.Model):
