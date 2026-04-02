@@ -190,6 +190,20 @@ class PagoAdmin(admin.ModelAdmin):
                 obj.liquido_avances = saldo_restante <= 0
                 obj.save(update_fields=["descuento_avances", "liquido_avances"])
 
+        conduces_form = form.cleaned_data.get("conduces")
+        if conduces_form:
+            self._marcar_conduces_liquidados(conduces_form)
+        if obj.conduce_id:
+            self._marcar_conduces_liquidados(Conduce.objects.filter(pk=obj.conduce_id))
+
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+        pago = form.instance
+        if pago and pago.pk:
+            self._marcar_conduces_liquidados(pago.conduces.all())
+            if pago.conduce_id:
+                self._marcar_conduces_liquidados(Conduce.objects.filter(pk=pago.conduce_id))
+
     def _aplicar_descuento_combustible(self, chofer_id, monto_cobrar):
         monto_restante = monto_cobrar or Decimal("0.00")
         if monto_restante <= 0:
@@ -224,3 +238,8 @@ class PagoAdmin(admin.ModelAdmin):
             monto_restante -= descuento
 
         return total_descontado
+
+    def _marcar_conduces_liquidados(self, conduces):
+        if conduces is None:
+            return
+        conduces.exclude(estado=Conduce.Estado.LIQUIDADO).update(estado=Conduce.Estado.LIQUIDADO)
