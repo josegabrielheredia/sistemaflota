@@ -62,6 +62,7 @@ class Contenedor(models.Model):
         CHEQUE = "cheque", "Cheque"
 
     codigo = models.CharField(max_length=40, unique=True, verbose_name="Ficha del contenedor")
+    tamano_pies = models.PositiveIntegerField(null=True, blank=True, verbose_name="Tamano (pies)")
     tipo = models.CharField(max_length=80, blank=True)
     capacidad = models.CharField(max_length=60, blank=True)
     color = models.CharField(max_length=30, blank=True)
@@ -145,3 +146,146 @@ class Contenedor(models.Model):
 
     def __str__(self):
         return self.codigo
+
+
+class Chasis(models.Model):
+    class Estado(models.TextChoices):
+        DISPONIBLE = "disponible", "Disponible"
+        ALQUILADO = "alquilado", "Alquilado"
+
+    codigo = models.CharField(max_length=40, unique=True, verbose_name="Ficha del chasis")
+    tamano_pies = models.PositiveIntegerField(null=True, blank=True, verbose_name="Tamano (pies)")
+    estado = models.CharField(
+        max_length=20,
+        choices=Estado.choices,
+        default=Estado.DISPONIBLE,
+    )
+    ubicacion_actual = models.CharField(max_length=200, blank=True)
+    observaciones = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = "Chasis"
+        verbose_name_plural = "Chasis"
+        ordering = ("codigo",)
+
+    def __str__(self):
+        return self.codigo
+
+
+class AlquilerContenedor(models.Model):
+    class FormaPago(models.TextChoices):
+        EFECTIVO = "efectivo", "Efectivo"
+        TRANSFERENCIA = "transferencia", "Transferencia"
+        CHEQUE = "cheque", "Cheque"
+
+    class Estado(models.TextChoices):
+        ACTIVO = "activo", "Activo"
+        CERRADO = "cerrado", "Cerrado"
+
+    contenedor = models.ForeignKey(
+        Contenedor,
+        on_delete=models.PROTECT,
+        related_name="alquileres",
+        verbose_name="Contenedor",
+    )
+    con_chasis = models.BooleanField(default=False, verbose_name="Con chasis")
+    chasis = models.ForeignKey(
+        Chasis,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="alquileres",
+        verbose_name="Chasis",
+    )
+    cliente = models.CharField(max_length=150, verbose_name="A quien se le da el servicio")
+    referido_por = models.CharField(max_length=150, blank=True, verbose_name="Referido por")
+    numero_contacto_referencia = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name="Numero de contacto de referencia",
+    )
+    numero_contrato_compromiso = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name="Numero de contrato de compromiso",
+    )
+    fecha_inicio = models.DateField(verbose_name="Fecha de inicio")
+    fecha_fin = models.DateField(null=True, blank=True, verbose_name="Fecha de fin")
+    costo_alquiler = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        verbose_name="Costo del alquiler",
+    )
+    forma_pago = models.CharField(
+        max_length=20,
+        choices=FormaPago.choices,
+        default=FormaPago.EFECTIVO,
+        verbose_name="Forma de pago",
+    )
+    numero_referencia_pago = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name="Numero de referencia de pago",
+    )
+    estado = models.CharField(
+        max_length=20,
+        choices=Estado.choices,
+        default=Estado.ACTIVO,
+    )
+    observaciones = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = "Alquiler de contenedor"
+        verbose_name_plural = "Alquileres de contenedores"
+        ordering = ("-fecha_inicio", "-id")
+
+    def clean(self):
+        errors = {}
+        if self.con_chasis and not self.chasis:
+            errors["chasis"] = "Selecciona el chasis cuando el alquiler es con chasis."
+        if not self.con_chasis:
+            self.chasis = None
+
+        if self.forma_pago in (self.FormaPago.TRANSFERENCIA, self.FormaPago.CHEQUE):
+            if not (self.numero_referencia_pago or "").strip():
+                errors["numero_referencia_pago"] = "Indica el numero de referencia de pago."
+
+        if self.fecha_fin and self.fecha_inicio and self.fecha_fin < self.fecha_inicio:
+            errors["fecha_fin"] = "La fecha de fin no puede ser menor que la fecha de inicio."
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        if self.forma_pago == self.FormaPago.EFECTIVO:
+            self.numero_referencia_pago = ""
+        self.numero_referencia_pago = (self.numero_referencia_pago or "").strip()
+        super().save(*args, **kwargs)
+        self._sync_estado_operativo()
+
+    def delete(self, *args, **kwargs):
+        contenedor_id = self.contenedor_id
+        chasis_id = self.chasis_id
+        super().delete(*args, **kwargs)
+        if contenedor_id:
+            Contenedor.objects.filter(pk=contenedor_id).update(estado=Contenedor.Estado.DISPONIBLE)
+        if chasis_id:
+            Chasis.objects.filter(pk=chasis_id).update(estado=Chasis.Estado.DISPONIBLE)
+
+    def _sync_estado_operativo(self):
+        contenedor_estado = (
+            Contenedor.Estado.ALQUILADO if self.estado == self.Estado.ACTIVO else Contenedor.Estado.DISPONIBLE
+        )
+        Contenedor.objects.filter(pk=self.contenedor_id).update(estado=contenedor_estado)
+
+        if self.con_chasis and self.chasis_id:
+            chasis_estado = (
+                Chasis.Estado.ALQUILADO if self.estado == self.Estado.ACTIVO else Chasis.Estado.DISPONIBLE
+            )
+            Chasis.objects.filter(pk=self.chasis_id).update(estado=chasis_estado)
+        elif self.chasis_id:
+            Chasis.objects.filter(pk=self.chasis_id).update(estado=Chasis.Estado.DISPONIBLE)
+
+    def __str__(self):
+        return f"{self.contenedor.codigo} - {self.fecha_inicio:%d/%m/%Y}"

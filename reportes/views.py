@@ -18,7 +18,7 @@ from recursos_humanos.models import (
     TipoLicencia,
     Vacacion,
 )
-from tracking.models import Contenedor, Vehiculo
+from tracking.models import AlquilerContenedor, Contenedor, Vehiculo
 
 from .forms import GeneradorReporteForm
 
@@ -841,18 +841,21 @@ def _build_report(tipo_reporte, fecha_desde=None, fecha_hasta=None):
     if tipo_reporte == "contenedores_alquilados":
         registros = list(
             _apply_date_range(
-                Contenedor.objects.filter(estado=Contenedor.Estado.ALQUILADO),
-                "fecha_salida",
+                AlquilerContenedor.objects.select_related("contenedor", "chasis")
+                .filter(estado=AlquilerContenedor.Estado.ACTIVO),
+                "fecha_inicio",
                 fecha_desde,
                 fecha_hasta,
             )
-            .order_by("fecha_salida", "codigo")
+            .order_by("fecha_inicio", "id")
             .values(
-                "codigo",
-                "color",
-                "cliente_actual",
-                "fecha_salida",
-                "fecha_retorno_estimada",
+                "contenedor__codigo",
+                "contenedor__color",
+                "cliente",
+                "fecha_inicio",
+                "fecha_fin",
+                "con_chasis",
+                "chasis__codigo",
             )
         )
         return {
@@ -864,14 +867,18 @@ def _build_report(tipo_reporte, fecha_desde=None, fecha_hasta=None):
                 "Alquilado a",
                 "Fecha inicio",
                 "Fecha fin",
+                "Con chasis",
+                "Chasis",
             ],
             "rows": [
                 [
-                    item["codigo"],
-                    item["color"] or "N/D",
-                    item["cliente_actual"] or "No definido",
-                    item["fecha_salida"].strftime("%d/%m/%Y") if item["fecha_salida"] else "N/D",
-                    item["fecha_retorno_estimada"].strftime("%d/%m/%Y") if item["fecha_retorno_estimada"] else "N/D",
+                    item["contenedor__codigo"],
+                    item["contenedor__color"] or "N/D",
+                    item["cliente"] or "No definido",
+                    item["fecha_inicio"].strftime("%d/%m/%Y") if item["fecha_inicio"] else "N/D",
+                    item["fecha_fin"].strftime("%d/%m/%Y") if item["fecha_fin"] else "N/D",
+                    "Si" if item["con_chasis"] else "No",
+                    item["chasis__codigo"] or "N/D",
                 ]
                 for item in registros
             ],

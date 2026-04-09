@@ -1,0 +1,208 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Factura de alquiler #{{ alquiler.id }}</title>
+    <style>
+        :root {
+            --line: #d7deea;
+            --text: #0f172a;
+            --muted: #64748b;
+            --brand: #1d4ed8;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            color: var(--text);
+            background: #f3f6fb;
+            padding: 24px;
+        }
+        .sheet {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 26px;
+        }
+        .head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 14px;
+            margin-bottom: 18px;
+        }
+        .title {
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: -0.03em;
+        }
+        .meta {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: #eaf1ff;
+            color: var(--brand);
+            font-weight: 700;
+            font-size: 13px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px 14px;
+            margin: 14px 0 22px;
+        }
+        .item {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 10px 12px;
+            min-height: 66px;
+        }
+        .item span {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 4px;
+        }
+        .item strong {
+            font-size: 16px;
+        }
+        .monto {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            margin: 6px 0 0;
+        }
+        .footer {
+            margin-top: 26px;
+            border-top: 1px solid var(--line);
+            padding-top: 18px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 24px;
+        }
+        .firma {
+            border-top: 1px solid #98a6bf;
+            padding-top: 8px;
+            color: #334155;
+            font-size: 13px;
+        }
+        .actions {
+            max-width: 900px;
+            margin: 14px auto 0;
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            appearance: none;
+            border: 1px solid #0f172a;
+            background: #0f172a;
+            color: #fff;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn.secondary {
+            background: #fff;
+            color: #0f172a;
+            border-color: #cbd5e1;
+        }
+        @media print {
+            body { background: #fff; padding: 0; }
+            .sheet { border: none; border-radius: 0; max-width: 100%; }
+            .actions { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="sheet">
+        <header class="head">
+            <div>
+                <h1 class="title">Factura de alquiler</h1>
+                <p class="meta">Transporte Victorino Diroche, S.R.L.</p>
+                <p class="meta">Factura interna #{{ alquiler.id }}</p>
+            </div>
+            <div class="badge">{{ alquiler.get_estado_display }}</div>
+        </header>
+
+        <div class="grid">
+            <div class="item">
+                <span>Contenedor</span>
+                <strong>{{ alquiler.contenedor.codigo }}</strong>
+            </div>
+            <div class="item">
+                <span>Con chasis</span>
+                <strong>{% if alquiler.con_chasis %}Si{% else %}No{% endif %}</strong>
+            </div>
+            <div class="item">
+                <span>Chasis</span>
+                <strong>{% if alquiler.chasis %}{{ alquiler.chasis.codigo }}{% else %}N/D{% endif %}</strong>
+            </div>
+            <div class="item">
+                <span>Cliente</span>
+                <strong>{{ alquiler.cliente }}</strong>
+            </div>
+            <div class="item">
+                <span>Referido por</span>
+                <strong>{{ alquiler.referido_por|default:"-" }}</strong>
+            </div>
+            <div class="item">
+                <span>Numero de contacto de referencia</span>
+                <strong>{{ alquiler.numero_contacto_referencia|default:"-" }}</strong>
+            </div>
+            <div class="item">
+                <span>Numero de contrato de compromiso</span>
+                <strong>{{ alquiler.numero_contrato_compromiso|default:"-" }}</strong>
+            </div>
+            <div class="item">
+                <span>Fecha de inicio</span>
+                <strong>{{ alquiler.fecha_inicio|date:"d/m/Y" }}</strong>
+            </div>
+            <div class="item">
+                <span>Fecha de fin</span>
+                <strong>{{ alquiler.fecha_fin|date:"d/m/Y"|default:"-" }}</strong>
+            </div>
+            <div class="item">
+                <span>Forma de pago</span>
+                <strong>{{ alquiler.get_forma_pago_display }}</strong>
+            </div>
+            <div class="item">
+                <span>Numero de referencia de pago</span>
+                <strong>{{ alquiler.numero_referencia_pago|default:"-" }}</strong>
+            </div>
+            <div class="item">
+                <span>Costo del alquiler</span>
+                <p class="monto">RD$ {{ alquiler.costo_alquiler|floatformat:2 }}</p>
+            </div>
+        </div>
+
+        <div class="item" style="min-height: 90px;">
+            <span>Observaciones</span>
+            <strong>{{ alquiler.observaciones|default:"Sin observaciones." }}</strong>
+        </div>
+
+        <section class="footer">
+            <div class="firma">Firma de quien entrega</div>
+            <div class="firma">Firma de quien recibe</div>
+        </section>
+    </div>
+
+    <div class="actions">
+        <button class="btn" type="button" onclick="window.print()">Imprimir factura</button>
+        <a class="btn secondary" href="{% url 'admin:tracking_alquilercontenedor_changelist' %}">Volver a alquileres</a>
+    </div>
+</body>
+</html>

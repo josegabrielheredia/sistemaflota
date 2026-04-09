@@ -1,6 +1,9 @@
 from django.contrib import admin
+from django.shortcuts import get_object_or_404, render
+from django.urls import path, reverse
+from django.utils.html import format_html
 
-from .models import Contenedor, Vehiculo
+from .models import AlquilerContenedor, Chasis, Contenedor, Vehiculo
 
 
 @admin.register(Vehiculo)
@@ -58,39 +61,117 @@ class VehiculoAdmin(admin.ModelAdmin):
 class ContenedorAdmin(admin.ModelAdmin):
     list_display = (
         "codigo",
+        "tamano_pies",
         "color",
         "local_o_importado",
         "estado",
-        "cliente_actual",
-        "fecha_salida",
-        "fecha_retorno_estimada",
-        "costo_alquiler",
-        "forma_pago",
     )
-    search_fields = ("codigo", "color", "cliente_actual", "referido_por", "servicio_a")
-    list_filter = ("estado", "local_o_importado", "forma_pago")
+    search_fields = ("codigo", "color", "ubicacion_actual")
+    list_filter = ("estado", "local_o_importado")
     fieldsets = (
         (
             "Datos del contenedor",
-            {"fields": ("codigo", "color", "local_o_importado", "estado")},
+            {"fields": ("codigo", "tamano_pies", "color", "local_o_importado", "estado")},
         ),
         (
-            "Alquiler",
+            "Ubicacion",
             {
                 "fields": (
-                    "cliente_actual",
-                    "fecha_salida",
-                    "fecha_retorno_estimada",
-                    "costo_alquiler",
-                    "forma_pago",
-                    "numero_referencia_pago",
-                    "referido_por",
-                    "servicio_a",
+                    "ubicacion_actual",
                     "observaciones",
                 )
             },
         ),
     )
 
+
+@admin.register(Chasis)
+class ChasisAdmin(admin.ModelAdmin):
+    list_display = ("codigo", "tamano_pies", "estado", "ubicacion_actual")
+    search_fields = ("codigo", "ubicacion_actual")
+    list_filter = ("estado",)
+    fieldsets = (
+        ("Datos del chasis", {"fields": ("codigo", "tamano_pies", "estado")}),
+        ("Ubicacion", {"fields": ("ubicacion_actual", "observaciones")}),
+    )
+
+
+@admin.register(AlquilerContenedor)
+class AlquilerContenedorAdmin(admin.ModelAdmin):
+    change_form_template = "admin/tracking/alquilercontenedor/change_form.html"
+    list_display = (
+        "contenedor",
+        "estado",
+        "cliente",
+        "con_chasis",
+        "chasis",
+        "fecha_inicio",
+        "fecha_fin",
+        "costo_alquiler",
+        "forma_pago",
+        "factura_link",
+    )
+    list_filter = ("estado", "con_chasis", "forma_pago", "fecha_inicio")
+    search_fields = ("contenedor__codigo", "chasis__codigo", "cliente", "referido_por")
+    fieldsets = (
+        (
+            "Contenedor",
+            {"fields": ("contenedor", "con_chasis", "chasis")},
+        ),
+        (
+            "Cliente y referencias",
+            {
+                "fields": (
+                    "cliente",
+                    "referido_por",
+                    "numero_contacto_referencia",
+                    "numero_contrato_compromiso",
+                )
+            },
+        ),
+        (
+            "Periodo de alquiler",
+            {"fields": ("fecha_inicio", "fecha_fin", "estado")},
+        ),
+        (
+            "Pago",
+            {"fields": ("costo_alquiler", "forma_pago", "numero_referencia_pago")},
+        ),
+        (
+            "Observaciones",
+            {"fields": ("observaciones",)},
+        ),
+    )
+
     class Media:
-        js = ("admin/js/contenedor_admin.js",)
+        js = ("admin/js/alquiler_contenedor_admin.js",)
+
+    def get_urls(self):
+        custom_urls = [
+            path(
+                "<int:alquiler_id>/factura/",
+                self.admin_site.admin_view(self.factura_view),
+                name="tracking_alquilercontenedor_factura",
+            ),
+        ]
+        return custom_urls + super().get_urls()
+
+    def factura_view(self, request, alquiler_id):
+        alquiler = get_object_or_404(
+            AlquilerContenedor.objects.select_related("contenedor", "chasis"),
+            pk=alquiler_id,
+        )
+        return render(
+            request,
+            "admin/tracking/alquilercontenedor/factura.html",
+            {
+                **self.admin_site.each_context(request),
+                "title": f"Factura de alquiler #{alquiler.id}",
+                "alquiler": alquiler,
+            },
+        )
+
+    @admin.display(description="Factura")
+    def factura_link(self, obj):
+        url = reverse("admin:tracking_alquilercontenedor_factura", args=[obj.pk])
+        return format_html('<a href="{}" target="_blank">Imprimir</a>', url)
