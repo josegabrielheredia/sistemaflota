@@ -232,12 +232,21 @@ class PagoEmpleado(models.Model):
         CHEQUE = "cheque", "Cheque"
         TRANSFERENCIA = "transferencia", "Transferencia"
 
+    class Quincena(models.TextChoices):
+        PRIMERA = "primera", "Primera quincena"
+        SEGUNDA = "segunda", "Segunda quincena"
+
     empleado = models.ForeignKey(
         Empleado,
         on_delete=models.CASCADE,
         related_name="pagos",
     )
     fecha = models.DateField()
+    quincena = models.CharField(
+        max_length=10,
+        choices=Quincena.choices,
+        default=Quincena.PRIMERA,
+    )
     monto = models.DecimalField(max_digits=12, decimal_places=2)
     metodo = models.CharField(max_length=20, choices=Metodo.choices)
     referencia = models.CharField(max_length=100, blank=True)
@@ -247,6 +256,21 @@ class PagoEmpleado(models.Model):
         verbose_name = "Pago de empleado"
         verbose_name_plural = "Pagos de empleados"
         ordering = ("-fecha", "-id")
+
+    @staticmethod
+    def quincena_desde_fecha(fecha):
+        if not fecha:
+            return PagoEmpleado.Quincena.PRIMERA
+        return (
+            PagoEmpleado.Quincena.PRIMERA
+            if fecha.day <= 15
+            else PagoEmpleado.Quincena.SEGUNDA
+        )
+
+    def save(self, *args, **kwargs):
+        if not self.quincena:
+            self.quincena = self.quincena_desde_fecha(self.fecha)
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.empleado} - {self.monto}"

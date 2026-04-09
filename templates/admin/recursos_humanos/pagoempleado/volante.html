@@ -1,0 +1,192 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Volante de pago #{{ pago.id }}</title>
+    <style>
+        :root {
+            --line: #d7deea;
+            --text: #0f172a;
+            --muted: #64748b;
+            --brand: #1d4ed8;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            color: var(--text);
+            background: #f3f6fb;
+            padding: 24px;
+        }
+        .sheet {
+            max-width: 860px;
+            margin: 0 auto;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 26px;
+        }
+        .head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 14px;
+            margin-bottom: 18px;
+        }
+        .title {
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: -0.03em;
+        }
+        .meta {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: #eaf1ff;
+            color: var(--brand);
+            font-weight: 700;
+            font-size: 13px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px 14px;
+            margin: 14px 0 22px;
+        }
+        .item {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 10px 12px;
+            min-height: 66px;
+        }
+        .item span {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 4px;
+        }
+        .item strong {
+            font-size: 16px;
+        }
+        .monto {
+            font-size: 34px;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            margin: 6px 0 0;
+        }
+        .footer {
+            margin-top: 26px;
+            border-top: 1px solid var(--line);
+            padding-top: 18px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 24px;
+        }
+        .firma {
+            border-top: 1px solid #98a6bf;
+            padding-top: 8px;
+            color: #334155;
+            font-size: 13px;
+        }
+        .actions {
+            max-width: 860px;
+            margin: 14px auto 0;
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            appearance: none;
+            border: 1px solid #0f172a;
+            background: #0f172a;
+            color: #fff;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn.secondary {
+            background: #fff;
+            color: #0f172a;
+            border-color: #cbd5e1;
+        }
+        @media print {
+            body { background: #fff; padding: 0; }
+            .sheet { border: none; border-radius: 0; max-width: 100%; }
+            .actions { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="sheet">
+        <header class="head">
+            <div>
+                <h1 class="title">Volante de pago</h1>
+                <p class="meta">Transporte Victorino Diroche, S.R.L.</p>
+                <p class="meta">Comprobante interno #{{ pago.id }}</p>
+            </div>
+            <div class="badge">{{ pago.get_quincena_display }}</div>
+        </header>
+
+        <div class="grid">
+            <div class="item">
+                <span>Empleado</span>
+                <strong>{{ pago.empleado.nombre }} {{ pago.empleado.apellidos }}</strong>
+            </div>
+            <div class="item">
+                <span>Cedula</span>
+                <strong>{{ pago.empleado.cedula }}</strong>
+            </div>
+            <div class="item">
+                <span>Departamento</span>
+                <strong>{{ pago.empleado.cargo.departamento.nombre }}</strong>
+            </div>
+            <div class="item">
+                <span>Designacion</span>
+                <strong>{{ pago.empleado.cargo.nombre }}</strong>
+            </div>
+            <div class="item">
+                <span>Fecha de pago</span>
+                <strong>{{ pago.fecha|date:"d/m/Y" }}</strong>
+            </div>
+            <div class="item">
+                <span>Metodo</span>
+                <strong>{{ pago.get_metodo_display }}</strong>
+            </div>
+            <div class="item">
+                <span>Referencia</span>
+                <strong>{{ pago.referencia|default:"-" }}</strong>
+            </div>
+            <div class="item">
+                <span>Monto pagado</span>
+                <p class="monto">RD$ {{ pago.monto|floatformat:2 }}</p>
+            </div>
+        </div>
+
+        <div class="item" style="min-height: 90px;">
+            <span>Observaciones</span>
+            <strong>{{ pago.observaciones|default:"Sin observaciones." }}</strong>
+        </div>
+
+        <section class="footer">
+            <div class="firma">Firma de quien entrega</div>
+            <div class="firma">Firma de quien recibe</div>
+        </section>
+    </div>
+
+    <div class="actions">
+        <button class="btn" type="button" onclick="window.print()">Imprimir volante</button>
+        <a class="btn secondary" href="{% url 'admin:recursos_humanos_pagoempleado_changelist' %}">Volver a pagos</a>
+    </div>
+</body>
+</html>

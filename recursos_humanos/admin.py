@@ -1,4 +1,7 @@
 from django.contrib import admin
+from django.shortcuts import get_object_or_404, render
+from django.urls import path, reverse
+from django.utils.html import format_html
 
 from .forms import RegistroGastoForm
 from .models import (
@@ -118,8 +121,49 @@ class CapacitacionAdmin(admin.ModelAdmin):
 
 @admin.register(PagoEmpleado)
 class PagoEmpleadoAdmin(admin.ModelAdmin):
-    list_display = ("empleado", "fecha", "monto", "metodo", "referencia")
+    change_form_template = "admin/recursos_humanos/pagoempleado/change_form.html"
+    list_display = (
+        "empleado",
+        "fecha",
+        "quincena",
+        "monto",
+        "metodo",
+        "referencia",
+        "volante_link",
+    )
+    list_filter = ("fecha", "quincena", "metodo")
     search_fields = ("empleado__nombre", "empleado__apellidos", "empleado__cedula", "referencia")
+    fields = ("empleado", "fecha", "quincena", "monto", "metodo", "referencia", "observaciones")
+
+    def get_urls(self):
+        custom_urls = [
+            path(
+                "<int:pago_id>/volante/",
+                self.admin_site.admin_view(self.volante_view),
+                name="recursos_humanos_pagoempleado_volante",
+            ),
+        ]
+        return custom_urls + super().get_urls()
+
+    def volante_view(self, request, pago_id):
+        pago = get_object_or_404(
+            PagoEmpleado.objects.select_related("empleado", "empleado__cargo", "empleado__cargo__departamento"),
+            pk=pago_id,
+        )
+        return render(
+            request,
+            "admin/recursos_humanos/pagoempleado/volante.html",
+            {
+                **self.admin_site.each_context(request),
+                "title": f"Volante de pago #{pago.id}",
+                "pago": pago,
+            },
+        )
+
+    @admin.display(description="Volante")
+    def volante_link(self, obj):
+        url = reverse("admin:recursos_humanos_pagoempleado_volante", args=[obj.pk])
+        return format_html('<a href="{}" target="_blank">Imprimir</a>', url)
 
 
 @admin.register(RegistroGasto)

@@ -24,8 +24,10 @@
                     <th>Empleado</th>
                     <th>Departamento / Designacion</th>
                     <th>Pago</th>
+                    <th>Quincena</th>
                     <th>Metodo</th>
                     <th>Referencia</th>
+                    <th>Volante</th>
                 </tr>
             </thead>
             <tbody>
@@ -45,16 +47,20 @@
                     </td>
                     <td>
                         <div class="table-stack">
-                            <span class="table-value">RD$ {{ pago.monto }}</span>
+                            <span class="table-value">RD$ {{ pago.monto|floatformat:2 }}</span>
                             <span class="table-secondary">{{ pago.fecha|date:"d/m/Y" }}</span>
                         </div>
                     </td>
+                    <td><span class="table-badge">{{ pago.get_quincena_display }}</span></td>
                     <td><span class="table-badge info">{{ pago.get_metodo_display }}</span></td>
                     <td>{{ pago.referencia|default:"-" }}</td>
+                    <td>
+                        <a class="module-list-metric" href="{% url 'admin:recursos_humanos_pagoempleado_volante' pago.id %}" target="_blank">Imprimir</a>
+                    </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5">
+                    <td colspan="7">
                         <div class="empty-state">
                             <strong>No hay pagos de empleados registrados</strong>
                             <p>Los pagos de nomina se mostraran aqui cuando sean cargados al sistema.</p>
