@@ -52,10 +52,25 @@ class Contenedor(models.Model):
         DISPONIBLE = "disponible", "Disponible"
         ALQUILADO = "alquilado", "Alquilado"
 
+    class Origen(models.TextChoices):
+        LOCAL = "local", "Local"
+        IMPORTADO = "importado", "Importado"
+
+    class FormaPago(models.TextChoices):
+        EFECTIVO = "efectivo", "Efectivo"
+        TRANSFERENCIA = "transferencia", "Transferencia"
+        CHEQUE = "cheque", "Cheque"
+
     codigo = models.CharField(max_length=40, unique=True, verbose_name="Ficha del contenedor")
     tipo = models.CharField(max_length=80, blank=True)
     capacidad = models.CharField(max_length=60, blank=True)
     color = models.CharField(max_length=30, blank=True)
+    local_o_importado = models.CharField(
+        max_length=15,
+        choices=Origen.choices,
+        default=Origen.LOCAL,
+        verbose_name="Local o importado",
+    )
     estado = models.CharField(
         max_length=20,
         choices=Estado.choices,
@@ -64,6 +79,25 @@ class Contenedor(models.Model):
     cliente_actual = models.CharField(max_length=150, blank=True, verbose_name="A quien se le alquilo")
     fecha_salida = models.DateField(null=True, blank=True, verbose_name="Fecha de inicio")
     fecha_retorno_estimada = models.DateField(null=True, blank=True, verbose_name="Fecha de fin")
+    costo_alquiler = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        verbose_name="Costo del alquiler",
+    )
+    forma_pago = models.CharField(
+        max_length=20,
+        choices=FormaPago.choices,
+        default=FormaPago.EFECTIVO,
+        verbose_name="Forma de pago",
+    )
+    numero_referencia_pago = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name="Numero de referencia de pago",
+    )
+    referido_por = models.CharField(max_length=150, blank=True, verbose_name="Referido por")
+    servicio_a = models.CharField(max_length=150, blank=True, verbose_name="A quien se le da el servicio")
     ubicacion_actual = models.CharField(max_length=200, blank=True)
     observaciones = models.TextField(blank=True)
 
@@ -84,6 +118,14 @@ class Contenedor(models.Model):
             if errors:
                 raise ValidationError(errors)
 
+        if self.forma_pago in (self.FormaPago.TRANSFERENCIA, self.FormaPago.CHEQUE):
+            if not (self.numero_referencia_pago or "").strip():
+                raise ValidationError(
+                    {
+                        "numero_referencia_pago": "Indica el numero de referencia de pago."
+                    }
+                )
+
         if (
             self.fecha_salida
             and self.fecha_retorno_estimada
@@ -94,6 +136,12 @@ class Contenedor(models.Model):
                     "fecha_retorno_estimada": "La fecha de fin no puede ser menor que la fecha de inicio."
                 }
             )
+
+    def save(self, *args, **kwargs):
+        if self.forma_pago == self.FormaPago.EFECTIVO:
+            self.numero_referencia_pago = ""
+        self.numero_referencia_pago = (self.numero_referencia_pago or "").strip()
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         return self.codigo

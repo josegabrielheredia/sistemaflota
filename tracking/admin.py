@@ -59,17 +59,20 @@ class ContenedorAdmin(admin.ModelAdmin):
     list_display = (
         "codigo",
         "color",
+        "local_o_importado",
         "estado",
         "cliente_actual",
         "fecha_salida",
         "fecha_retorno_estimada",
+        "costo_alquiler",
+        "forma_pago",
     )
-    search_fields = ("codigo", "color", "cliente_actual")
-    list_filter = ("estado",)
+    search_fields = ("codigo", "color", "cliente_actual", "referido_por", "servicio_a")
+    list_filter = ("estado", "local_o_importado", "forma_pago")
     fieldsets = (
         (
             "Datos del contenedor",
-            {"fields": ("codigo", "color", "estado")},
+            {"fields": ("codigo", "color", "local_o_importado", "estado")},
         ),
         (
             "Alquiler",
@@ -78,8 +81,16 @@ class ContenedorAdmin(admin.ModelAdmin):
                     "cliente_actual",
                     "fecha_salida",
                     "fecha_retorno_estimada",
+                    "costo_alquiler",
+                    "forma_pago",
+                    "numero_referencia_pago",
+                    "referido_por",
+                    "servicio_a",
                     "observaciones",
                 )
             },
         ),
     )
+
+    class Media:
+        js = ("admin/js/contenedor_admin.js",)
