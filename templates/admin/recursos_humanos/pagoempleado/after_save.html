@@ -1,0 +1,13 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div class="module">
+    <h1>Pago registrado</h1>
+    <p>El pago se guardo correctamente. Deseas imprimir el volante ahora?</p>
+    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:16px;">
+        <a class="button default" href="{% url 'admin:recursos_humanos_pagoempleado_volante' pago.pk %}" target="_blank">Imprimir volante</a>
+        <a class="button" href="{% url 'admin:recursos_humanos_pagoempleado_change' pago.pk %}">Volver al pago</a>
+        <a class="button" href="{% url 'admin:recursos_humanos_pagoempleado_changelist' %}">Ir al listado</a>
+    </div>
+</div>
+{% endblock %}

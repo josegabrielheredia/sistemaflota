@@ -1,0 +1,13 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div class="module">
+    <h1>Alquiler registrado</h1>
+    <p>El alquiler se guardo correctamente. Deseas imprimir la factura ahora?</p>
+    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:16px;">
+        <a class="button default" href="{% url 'admin:tracking_alquilercontenedor_factura' alquiler.pk %}" target="_blank">Imprimir factura</a>
+        <a class="button" href="{% url 'admin:tracking_alquilercontenedor_change' alquiler.pk %}">Volver al alquiler</a>
+        <a class="button" href="{% url 'admin:tracking_alquilercontenedor_changelist' %}">Ir al listado</a>
+    </div>
+</div>
+{% endblock %}

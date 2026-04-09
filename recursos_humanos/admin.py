@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import path, reverse
 from django.utils.html import format_html
@@ -142,6 +143,11 @@ class PagoEmpleadoAdmin(admin.ModelAdmin):
                 self.admin_site.admin_view(self.volante_view),
                 name="recursos_humanos_pagoempleado_volante",
             ),
+            path(
+                "<int:pago_id>/despues-guardar/",
+                self.admin_site.admin_view(self.after_save_view),
+                name="recursos_humanos_pagoempleado_after_save",
+            ),
         ]
         return custom_urls + super().get_urls()
 
@@ -160,10 +166,26 @@ class PagoEmpleadoAdmin(admin.ModelAdmin):
             },
         )
 
+    def after_save_view(self, request, pago_id):
+        pago = get_object_or_404(PagoEmpleado, pk=pago_id)
+        return render(
+            request,
+            "admin/recursos_humanos/pagoempleado/after_save.html",
+            {
+                **self.admin_site.each_context(request),
+                "title": "Pago registrado",
+                "pago": pago,
+            },
+        )
+
     @admin.display(description="Volante")
     def volante_link(self, obj):
         url = reverse("admin:recursos_humanos_pagoempleado_volante", args=[obj.pk])
         return format_html('<a href="{}" target="_blank">Imprimir</a>', url)
+
+    def response_add(self, request, obj, post_url_continue=None):
+        url = reverse("admin:recursos_humanos_pagoempleado_after_save", args=[obj.pk])
+        return HttpResponseRedirect(url)
 
 
 @admin.register(RegistroGasto)

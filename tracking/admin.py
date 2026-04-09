@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import path, reverse
 from django.utils.html import format_html
@@ -153,6 +154,11 @@ class AlquilerContenedorAdmin(admin.ModelAdmin):
                 self.admin_site.admin_view(self.factura_view),
                 name="tracking_alquilercontenedor_factura",
             ),
+            path(
+                "<int:alquiler_id>/despues-guardar/",
+                self.admin_site.admin_view(self.after_save_view),
+                name="tracking_alquilercontenedor_after_save",
+            ),
         ]
         return custom_urls + super().get_urls()
 
@@ -171,7 +177,23 @@ class AlquilerContenedorAdmin(admin.ModelAdmin):
             },
         )
 
+    def after_save_view(self, request, alquiler_id):
+        alquiler = get_object_or_404(AlquilerContenedor, pk=alquiler_id)
+        return render(
+            request,
+            "admin/tracking/alquilercontenedor/after_save.html",
+            {
+                **self.admin_site.each_context(request),
+                "title": "Alquiler registrado",
+                "alquiler": alquiler,
+            },
+        )
+
     @admin.display(description="Factura")
     def factura_link(self, obj):
         url = reverse("admin:tracking_alquilercontenedor_factura", args=[obj.pk])
         return format_html('<a href="{}" target="_blank">Imprimir</a>', url)
+
+    def response_add(self, request, obj, post_url_continue=None):
+        url = reverse("admin:tracking_alquilercontenedor_after_save", args=[obj.pk])
+        return HttpResponseRedirect(url)
