@@ -1,10 +1,9 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Factura de alquiler #ALQ-{{ alquiler.id|stringformat:"05d" }}</title>
+    <title>Volante de recibo #REC-{{ recibo.id|stringformat:"05d" }}</title>
     <style>
         :root {
             --line: #d7deea;
@@ -78,12 +77,6 @@
         .item strong {
             font-size: 16px;
         }
-        .monto {
-            font-size: 32px;
-            font-weight: 800;
-            letter-spacing: -0.04em;
-            margin: 6px 0 0;
-        }
         .footer {
             margin-top: 26px;
             border-top: 1px solid var(--line);
@@ -131,67 +124,51 @@
     <div class="sheet">
         <header class="head">
             <div>
-                <h1 class="title">Factura de alquiler</h1>
+                <h1 class="title">Volante de recibo de contenedor</h1>
                 <p class="meta">Transporte Victorino Diroche, S.R.L.</p>
-                <p class="meta">Factura interna #ALQ-{{ alquiler.id|stringformat:"05d" }}</p>
+                <p class="meta">Recibo interno #REC-{{ recibo.id|stringformat:"05d" }}</p>
             </div>
-            <div class="badge">{{ alquiler.get_estado_display }}</div>
+            <div class="badge">Recibido</div>
         </header>
 
         <div class="grid">
             <div class="item">
                 <span>Contenedor</span>
-                <strong>{{ alquiler.contenedor.codigo }}</strong>
-            </div>
-            <div class="item">
-                <span>Con chasis</span>
-                <strong>{% if alquiler.con_chasis %}Si{% else %}No{% endif %}</strong>
-            </div>
-            <div class="item">
-                <span>Chasis</span>
-                <strong>{% if alquiler.chasis %}{{ alquiler.chasis.codigo }}{% else %}N/D{% endif %}</strong>
+                <strong>{{ recibo.alquiler.contenedor.codigo }}</strong>
             </div>
             <div class="item">
                 <span>Cliente</span>
-                <strong>{{ alquiler.cliente }}</strong>
+                <strong>{{ recibo.alquiler.cliente }}</strong>
             </div>
             <div class="item">
-                <span>Referido por</span>
-                <strong>{{ alquiler.referido_por|default:"-" }}</strong>
+                <span>Con chasis</span>
+                <strong>{% if recibo.alquiler.con_chasis %}Si{% else %}No{% endif %}</strong>
             </div>
             <div class="item">
-                <span>Numero de contacto de referencia</span>
-                <strong>{{ alquiler.numero_contacto_referencia|default:"-" }}</strong>
+                <span>Chasis</span>
+                <strong>{% if recibo.alquiler.chasis %}{{ recibo.alquiler.chasis.codigo }}{% else %}N/D{% endif %}</strong>
             </div>
             <div class="item">
-                <span>Numero de contrato de compromiso</span>
-                <strong>{{ alquiler.numero_contrato_compromiso|default:"-" }}</strong>
+                <span>Fecha de inicio del alquiler</span>
+                <strong>{{ recibo.alquiler.fecha_inicio|date:"d/m/Y" }}</strong>
             </div>
             <div class="item">
-                <span>Fecha de inicio</span>
-                <strong>{{ alquiler.fecha_inicio|date:"d/m/Y" }}</strong>
+                <span>Fecha de recibo</span>
+                <strong>{{ recibo.fecha_recibo|date:"d/m/Y" }}</strong>
             </div>
             <div class="item">
-                <span>Fecha de fin</span>
-                <strong>{{ alquiler.fecha_fin|date:"d/m/Y"|default:"-" }}</strong>
+                <span>Numero de factura relacionada</span>
+                <strong>ALQ-{{ recibo.alquiler.id|stringformat:"05d" }}</strong>
             </div>
             <div class="item">
-                <span>Forma de pago</span>
-                <strong>{{ alquiler.get_forma_pago_display }}</strong>
-            </div>
-            <div class="item">
-                <span>Numero de referencia de pago</span>
-                <strong>{{ alquiler.numero_referencia_pago|default:"-" }}</strong>
-            </div>
-            <div class="item">
-                <span>Costo del alquiler</span>
-                <p class="monto">RD$ {{ alquiler.costo_alquiler|floatformat:2 }}</p>
+                <span>Estado del alquiler</span>
+                <strong>{{ recibo.alquiler.get_estado_display }}</strong>
             </div>
         </div>
 
         <div class="item" style="min-height: 90px;">
-            <span>Observaciones</span>
-            <strong>{{ alquiler.observaciones|default:"Sin observaciones." }}</strong>
+            <span>Observaciones del recibo</span>
+            <strong>{{ recibo.observaciones|default:"Sin observaciones." }}</strong>
         </div>
 
         <section class="footer">
@@ -201,8 +178,8 @@
     </div>
 
     <div class="actions">
-        <button class="btn" type="button" onclick="window.print()">Imprimir factura</button>
-        <a class="btn secondary" href="{% url 'admin:tracking_alquilercontenedor_changelist' %}">Volver a alquileres</a>
+        <button class="btn" type="button" onclick="window.print()">Imprimir volante</button>
+        <a class="btn secondary" href="{% url 'admin:tracking_recibocontenedor_changelist' %}">Volver a recibos</a>
     </div>
 </body>
 </html>

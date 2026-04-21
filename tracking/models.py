@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 
 
 class Vehiculo(models.Model):
@@ -289,3 +290,44 @@ class AlquilerContenedor(models.Model):
 
     def __str__(self):
         return f"{self.contenedor.codigo} - {self.fecha_inicio:%d/%m/%Y}"
+
+
+class ReciboContenedor(models.Model):
+    alquiler = models.ForeignKey(
+        AlquilerContenedor,
+        on_delete=models.PROTECT,
+        related_name="recibos",
+        verbose_name="Alquiler de contenedor",
+    )
+    fecha_recibo = models.DateField(default=timezone.localdate, verbose_name="Fecha de recibo")
+    observaciones = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = "Recibo de contenedor"
+        verbose_name_plural = "Recibos de contenedores"
+        ordering = ("-fecha_recibo", "-id")
+
+    def clean(self):
+        errors = {}
+        if self.alquiler_id and self.alquiler.estado != AlquilerContenedor.Estado.ACTIVO:
+            errors["alquiler"] = "Solo puedes recibir contenedores con alquiler activo."
+        if self.alquiler_id and self.fecha_recibo and self.fecha_recibo < self.alquiler.fecha_inicio:
+            errors["fecha_recibo"] = "La fecha de recibo no puede ser menor que la fecha de inicio del alquiler."
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        alquiler = self.alquiler
+        updates = []
+        if alquiler.estado != AlquilerContenedor.Estado.CERRADO:
+            alquiler.estado = AlquilerContenedor.Estado.CERRADO
+            updates.append("estado")
+        if not alquiler.fecha_fin or alquiler.fecha_fin != self.fecha_recibo:
+            alquiler.fecha_fin = self.fecha_recibo
+            updates.append("fecha_fin")
+        if updates:
+            alquiler.save(update_fields=updates)
+
+    def __str__(self):
+        return f"Recibo {self.pk} - {self.alquiler.contenedor.codigo}"

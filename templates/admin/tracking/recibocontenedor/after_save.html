@@ -1,0 +1,13 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+    <div class="module aligned">
+        <h1>Recibo registrado correctamente</h1>
+        <p>El alquiler quedo cerrado y el contenedor fue marcado como disponible nuevamente.</p>
+        <div class="submit-row" style="justify-content:flex-start; gap:12px;">
+            <a class="button default" href="{% url 'admin:tracking_recibocontenedor_volante' recibo.pk %}" target="_blank">Imprimir volante</a>
+            <a class="button" href="{% url 'admin:tracking_recibocontenedor_change' recibo.pk %}">Volver al recibo</a>
+            <a class="button" href="{% url 'admin:tracking_recibocontenedor_changelist' %}">Ir al listado</a>
+        </div>
+    </div>
+{% endblock %}

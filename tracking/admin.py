@@ -1,10 +1,28 @@
+from django import forms
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import path, reverse
 from django.utils.html import format_html
 
-from .models import AlquilerContenedor, Chasis, Contenedor, Vehiculo
+from .models import AlquilerContenedor, Chasis, Contenedor, ReciboContenedor, Vehiculo
+
+
+class ReciboContenedorAdminForm(forms.ModelForm):
+    class Meta:
+        model = ReciboContenedor
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        queryset = AlquilerContenedor.objects.select_related("contenedor", "chasis").filter(
+            estado=AlquilerContenedor.Estado.ACTIVO
+        )
+        if self.instance.pk and self.instance.alquiler_id:
+            queryset = AlquilerContenedor.objects.select_related("contenedor", "chasis").filter(
+                pk=self.instance.alquiler_id
+            ) | queryset
+        self.fields["alquiler"].queryset = queryset.order_by("-fecha_inicio", "contenedor__codigo").distinct()
 
 
 @admin.register(Vehiculo)
@@ -102,6 +120,7 @@ class AlquilerContenedorAdmin(admin.ModelAdmin):
     change_form_template = "admin/tracking/alquilercontenedor/change_form.html"
     list_display = (
         "contenedor",
+        "numero_factura",
         "estado",
         "cliente",
         "con_chasis",
@@ -172,7 +191,7 @@ class AlquilerContenedorAdmin(admin.ModelAdmin):
             "admin/tracking/alquilercontenedor/factura.html",
             {
                 **self.admin_site.each_context(request),
-                "title": f"Factura de alquiler #{alquiler.id}",
+                "title": f"Factura de alquiler #{self.numero_factura(alquiler)}",
                 "alquiler": alquiler,
             },
         )
@@ -194,6 +213,97 @@ class AlquilerContenedorAdmin(admin.ModelAdmin):
         url = reverse("admin:tracking_alquilercontenedor_factura", args=[obj.pk])
         return format_html('<a href="{}" target="_blank">Imprimir</a>', url)
 
+    @admin.display(description="Numero de factura")
+    def numero_factura(self, obj):
+        return f"ALQ-{obj.pk:05d}"
+
     def response_add(self, request, obj, post_url_continue=None):
         url = reverse("admin:tracking_alquilercontenedor_after_save", args=[obj.pk])
+        return HttpResponseRedirect(url)
+
+
+@admin.register(ReciboContenedor)
+class ReciboContenedorAdmin(admin.ModelAdmin):
+    change_form_template = "admin/tracking/recibocontenedor/change_form.html"
+    form = ReciboContenedorAdminForm
+    list_display = (
+        "numero_recibo",
+        "contenedor",
+        "cliente",
+        "fecha_recibo",
+        "volante_link",
+    )
+    search_fields = ("alquiler__contenedor__codigo", "alquiler__cliente")
+    list_filter = ("fecha_recibo",)
+    fieldsets = (
+        (
+            "Recibo de contenedor",
+            {"fields": ("alquiler", "fecha_recibo", "observaciones")},
+        ),
+    )
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("alquiler", "alquiler__contenedor", "alquiler__chasis")
+
+    def get_urls(self):
+        custom_urls = [
+            path(
+                "<int:recibo_id>/volante/",
+                self.admin_site.admin_view(self.volante_view),
+                name="tracking_recibocontenedor_volante",
+            ),
+            path(
+                "<int:recibo_id>/despues-guardar/",
+                self.admin_site.admin_view(self.after_save_view),
+                name="tracking_recibocontenedor_after_save",
+            ),
+        ]
+        return custom_urls + super().get_urls()
+
+    def volante_view(self, request, recibo_id):
+        recibo = get_object_or_404(
+            ReciboContenedor.objects.select_related("alquiler", "alquiler__contenedor", "alquiler__chasis"),
+            pk=recibo_id,
+        )
+        return render(
+            request,
+            "admin/tracking/recibocontenedor/volante.html",
+            {
+                **self.admin_site.each_context(request),
+                "title": f"Volante de recibo #{self.numero_recibo(recibo)}",
+                "recibo": recibo,
+            },
+        )
+
+    def after_save_view(self, request, recibo_id):
+        recibo = get_object_or_404(ReciboContenedor, pk=recibo_id)
+        return render(
+            request,
+            "admin/tracking/recibocontenedor/after_save.html",
+            {
+                **self.admin_site.each_context(request),
+                "title": "Recibo registrado",
+                "recibo": recibo,
+            },
+        )
+
+    @admin.display(description="Numero de recibo")
+    def numero_recibo(self, obj):
+        return f"REC-{obj.pk:05d}"
+
+    @admin.display(description="Contenedor")
+    def contenedor(self, obj):
+        return obj.alquiler.contenedor.codigo
+
+    @admin.display(description="Cliente")
+    def cliente(self, obj):
+        return obj.alquiler.cliente
+
+    @admin.display(description="Volante")
+    def volante_link(self, obj):
+        url = reverse("admin:tracking_recibocontenedor_volante", args=[obj.pk])
+        return format_html('<a href="{}" target="_blank">Imprimir</a>', url)
+
+    def response_add(self, request, obj, post_url_continue=None):
+        url = reverse("admin:tracking_recibocontenedor_after_save", args=[obj.pk])
         return HttpResponseRedirect(url)
