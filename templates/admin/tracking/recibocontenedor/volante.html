@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Volante de recibo #REC-{{ recibo.id|stringformat:"05d" }}</title>
+    <title>Recibo de contenedor #REC-{{ recibo.id|stringformat:"05d" }}</title>
     <style>
         :root {
             --line: #d7deea;
@@ -77,6 +77,12 @@
         .item strong {
             font-size: 16px;
         }
+        .monto {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            margin: 6px 0 0;
+        }
         .footer {
             margin-top: 26px;
             border-top: 1px solid var(--line);
@@ -127,6 +133,7 @@
                 <h1 class="title">Volante de recibo de contenedor</h1>
                 <p class="meta">Transporte Victorino Diroche, S.R.L.</p>
                 <p class="meta">Recibo interno #REC-{{ recibo.id|stringformat:"05d" }}</p>
+                <p class="meta">Alquiler relacionado #ALQ-{{ recibo.alquiler.id|stringformat:"05d" }}</p>
             </div>
             <div class="badge">Recibido</div>
         </header>
@@ -141,12 +148,24 @@
                 <strong>{{ recibo.alquiler.cliente }}</strong>
             </div>
             <div class="item">
+                <span>Referido por</span>
+                <strong>{{ recibo.alquiler.referido_por|default:"-" }}</strong>
+            </div>
+            <div class="item">
+                <span>Numero de contacto de referencia</span>
+                <strong>{{ recibo.alquiler.numero_contacto_referencia|default:"-" }}</strong>
+            </div>
+            <div class="item">
                 <span>Con chasis</span>
                 <strong>{% if recibo.alquiler.con_chasis %}Si{% else %}No{% endif %}</strong>
             </div>
             <div class="item">
                 <span>Chasis</span>
                 <strong>{% if recibo.alquiler.chasis %}{{ recibo.alquiler.chasis.codigo }}{% else %}N/D{% endif %}</strong>
+            </div>
+            <div class="item">
+                <span>Numero de contrato de compromiso</span>
+                <strong>{{ recibo.alquiler.numero_contrato_compromiso|default:"-" }}</strong>
             </div>
             <div class="item">
                 <span>Fecha de inicio del alquiler</span>
@@ -157,12 +176,24 @@
                 <strong>{{ recibo.fecha_recibo|date:"d/m/Y" }}</strong>
             </div>
             <div class="item">
-                <span>Numero de factura relacionada</span>
+                <span>Numero de recibo</span>
+                <strong>REC-{{ recibo.id|stringformat:"05d" }}</strong>
+            </div>
+            <div class="item">
+                <span>Numero de alquiler relacionado</span>
                 <strong>ALQ-{{ recibo.alquiler.id|stringformat:"05d" }}</strong>
             </div>
             <div class="item">
-                <span>Estado del alquiler</span>
-                <strong>{{ recibo.alquiler.get_estado_display }}</strong>
+                <span>Forma de pago registrada</span>
+                <strong>{{ recibo.alquiler.get_forma_pago_display }}</strong>
+            </div>
+            <div class="item">
+                <span>Numero de referencia de pago</span>
+                <strong>{{ recibo.alquiler.numero_referencia_pago|default:"-" }}</strong>
+            </div>
+            <div class="item">
+                <span>Costo del alquiler</span>
+                <p class="monto">RD$ {{ recibo.alquiler.costo_alquiler|floatformat:2 }}</p>
             </div>
         </div>
 
